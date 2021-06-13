@@ -1,2 +1,2 @@
 # Pathio
-A web-based io game
+A web-based io gam

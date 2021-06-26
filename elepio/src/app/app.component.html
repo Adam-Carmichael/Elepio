@@ -1,0 +1,15 @@
+<canvas
+  #game 
+  id="game-canvas"
+  style="border: 1px solid black">
+</canvas>
+
+<p>
+  <button (click)="updateCurrentPlayer('right')">Right</button>
+  <button (click)="updateCurrentPlayer('left')">Left</button>
+  <button (click)="updateCurrentPlayer('up')">Up</button>
+  <button (click)="updateCurrentPlayer('down')">Down</button>
+</p>
+
+
+<router-outlet></router-outlet>

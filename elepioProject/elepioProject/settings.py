@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework', # Django REST framework
-    'elepioApp.apps.ElepioappConfig', # elepioApp application
+    'elepioApp.apps.ElepioAppConfig', # elepioApp application
     'corsheaders', # CORS
 ]
 
@@ -79,13 +79,13 @@ WSGI_APPLICATION = 'elepioProject.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': { #TBD when server is set up
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
+    'default': {
+        'ENGINE': 'djongo',
+        'NAME': 'Elepio',
+        'USERNAME': 'elepio_admin',
+        'PASSWORD': 'A4zuWQoU5YwCvdX6',
+        'HOST': 'mongodb+srv://elepio_admin:A4zuWQoU5YwCvdX6@cluster0.02gp5.mongodb.net/Elepio?retryWrites=true&w=majority',
+        'PORT': 27017,
     }
 }
 
@@ -133,7 +133,7 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ORIGIN_ALLOW_ALL = False
-CORS_ORIGIN_WHITELIST = ( # TODO: whitelist elastic beanstalk web app
-    'http://localhost:8081',
-)
+CORS_ORIGIN_ALLOW_ALL = True
+#CORS_ORIGIN_WHITELIST = (
+#    'mongodb+srv://elepio_admin:A4zuWQoU5YwCvdX6@cluster0.02gp5.mongodb.net/Elepio?retryWrites=true&w=majority',
+#)

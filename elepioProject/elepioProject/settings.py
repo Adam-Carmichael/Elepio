@@ -137,3 +137,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 #CORS_ORIGIN_WHITELIST = (
 #    'mongodb+srv://elepio_admin:A4zuWQoU5YwCvdX6@cluster0.02gp5.mongodb.net/Elepio?retryWrites=true&w=majority',
 #)
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication"
+    ]
+}

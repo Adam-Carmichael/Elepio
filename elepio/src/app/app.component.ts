@@ -6,17 +6,10 @@ import {
   AfterViewInit, 
   HostListener 
 } from '@angular/core';
-import{ Player } from "./player";
 import { Game } from './game';
+import { Direction } from './interfaces/common.interface';
 
-//Evolve - 1 path - killing +1 spells
-//firebackk - left
-//wall - right
-//body - circle
-//farming - bumping/fireball
-//ui - minimap + main content
-//controls - wasd
-//
+import * as p5 from "p5";
 
 
 @Component({
@@ -29,29 +22,63 @@ export class AppComponent implements OnInit {
   
   public game!: Game;
 
-  @ViewChild("game")
-  gameCanvas!: ElementRef;
-
   public ngOnInit() {
-
+    this.game = new Game();
   }
 
   public ngAfterViewInit() {
-    //Create game after html has loaded
-    this.game = new Game(this.gameCanvas);
 
-    //Create main/current player
-    var currentPlayer = new Player(20,20,5,5,true);
-    this.game.addPlayer(currentPlayer);
   }
 
-  public updateCurrentPlayer(direction:string){
+ 
+
+
+
+
+
+
+
+
+  //IGNORE =============
+
+  //import "p5/lib/addons/p5.sound";
+
+
+
+//Evolve - 1 path - killing +1 spells
+//firebackk - left
+//wall - right
+//body - circle
+//farming - bumping/fireball
+//ui - minimap + main content
+//controls - wasd
+//
+
+/*
+  private p5:any;
+  private canvas:any;
+
+  public updateCurrentPlayer(direction:Direction){
     this.game.updateCurrentPlayer(direction);
   }
 
 
-  
+  private createCanvas(){
+    this.p5 = new p5(this.sketch);
+  }
+  private sketch(p:any){
+    p.setup = () => {
+      p.createCanvas(700,600);  
+    }
 
+    p.draw = () => {
+      p.background(255);
+      p.fill(0);
+      p.rect(p.width/2, p.height/2, 50, 50);
+    }
+  }
+  
+*/
 
 
 

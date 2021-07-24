@@ -1,5 +1,5 @@
-import { ShapeType } from "./interfaces/common.interface";
-import { Shape } from "./shape";
+import { ShapeType } from "../../interfaces/common.interface";
+import { Shape } from "../shape/shape";
 
 export class Square extends Shape {
     constructor(

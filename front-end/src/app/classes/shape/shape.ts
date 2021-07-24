@@ -1,4 +1,4 @@
-import { ShapeType } from '././interfaces/common.interface';
+import { ShapeType } from '../../interfaces/common.interface';
 
 export class Shape {
     //Same as private = #

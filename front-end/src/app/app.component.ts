@@ -6,7 +6,7 @@ import {
   AfterViewInit, 
   HostListener 
 } from '@angular/core';
-import { Game } from './game';
+import { Game } from "./classes/game/game";
 import { Direction } from './interfaces/common.interface';
 
 import * as p5 from "p5";

@@ -1,7 +1,7 @@
-import { Direction, ShapeType } from "./interfaces/common.interface";
-import * as PlayerInterface from "./interfaces/player.interface";
-import { Shape } from "./shape";
-import { Square } from "./square";
+import { Direction, ShapeType } from "../../interfaces/common.interface";
+import * as PlayerInterface from "../../interfaces/player.interface";
+import { Shape } from "../shape/shape";
+import { Square } from "../square/square";
 
 export class Player {
     private x: number = 0;

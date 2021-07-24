@@ -1,8 +1,8 @@
 import { ViewChild, ElementRef } from "@angular/core";
-import { Player } from "./player";
+import { Player } from "../player/player";
 import * as p5 from "p5";
-import * as boardInfo from "./demo_data/board.json";
-import { Direction } from "./interfaces/common.interface";
+import * as boardInfo from "../../demo_data/board.json";
+import { Direction } from "../../interfaces/common.interface";
 
 export class Game {
     private p5: any;

@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { ElepioService } from './elepio.service';
+import { ElepioAppService } from './elepio-app.service';
 
-describe('ElepioService', () => {
-  let service: ElepioService;
+describe('ElepioAppService', () => {
+  let service: ElepioAppService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(ElepioService);
+    service = TestBed.inject(ElepioAppService);
   });
 
   it('should be created', () => {

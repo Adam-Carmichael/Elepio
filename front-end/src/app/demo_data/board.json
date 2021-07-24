@@ -1,8 +1,8 @@
 {
     "board":
         {
-        "width":"1000px",
-        "height":"1000px",
+        "width":"1000",
+        "height":"1000",
         "background_color":"black"
     },
     "players": [
@@ -15,8 +15,8 @@
             },
             "player_object": {
                 "type": "square",
-                "width": "20px",
-                "height": "20px"
+                "width": "20",
+                "height": "20"
             }
         },
         {

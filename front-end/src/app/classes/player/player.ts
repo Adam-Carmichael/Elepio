@@ -4,10 +4,10 @@ import { Shape } from "../shape/shape";
 import { Square } from "../square/square";
 
 export class Player {
-    private x: number = 0;
-    private y: number = 0;
+    public x: number = 0;
+    public y: number = 0;
 
-    private player_object?: Shape;
+    public player_object: Square;
 
     private currentPlayer: boolean = false;
 
@@ -17,9 +17,7 @@ export class Player {
 
         let player_type = player.player_object.type;
         
-        if(player_type != "square"){
-            return;
-        }
+        
         
         this.player_object = new Square(
             "red",

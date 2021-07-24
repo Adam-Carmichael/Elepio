@@ -1,16 +1,7 @@
 import { 
   Component, 
-  OnInit, 
-  ViewChild, 
-  ElementRef, 
-  AfterViewInit, 
-  HostListener 
+  OnInit
 } from '@angular/core';
-import { Game } from "./classes/game/game";
-import { Direction } from './interfaces/common.interface';
-
-import * as p5 from "p5";
-
 
 @Component({
   selector: 'app-root',
@@ -20,14 +11,10 @@ import * as p5 from "p5";
 export class AppComponent implements OnInit {
   title = 'elepio';
   
-  public game!: Game;
-
   public ngOnInit() {
-    this.game = new Game();
   }
 
   public ngAfterViewInit() {
-
   }
 
  

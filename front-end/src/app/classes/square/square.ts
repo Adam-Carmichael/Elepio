@@ -4,7 +4,7 @@ import { Shape } from "../shape/shape";
 export class Square extends Shape {
     constructor(
         color:string,
-        private width:string,
+        public width:string,
         private height:string){
         super("square",color);
     }

@@ -6,7 +6,7 @@ import { Square } from "../square/square";
 export class Player {
     public x: number = 0;
     public y: number = 0;
-
+    public color:string = "255";
     public player_object: Square;
 
     private currentPlayer: boolean = false;
@@ -14,6 +14,7 @@ export class Player {
     constructor(player: PlayerInterface.Player) {
         this.x = player.player_location.pos_x;
         this.y = player.player_location.pos_y;
+        this.color = player.color;
 
         let player_type = player.player_object.type;
         

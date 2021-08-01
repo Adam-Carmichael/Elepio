@@ -1,14 +1,33 @@
 {
-    "board":
-        {
-        "width":"1000",
-        "height":"1000",
-        "background_color":"black"
+    "board": {
+        "width": "500",
+        "height": "500",
+        "background_color": "black",
+        "unique_id":"38f23eje",
+        "obstacles":{},
+        "active":true,
+        "size":"100"
+    },
+    "newPlayer": {
+        "name": "luis 2",
+        "id": 4,
+        "color": "125",
+        "unique_id": "238e398hf",
+        "player_location": {
+            "pos_x": 100,
+            "pos_y": 50
+        },
+        "player_object": {
+            "type": "square",
+            "width": "20",
+            "height": "20"
+        }
     },
     "players": [
         {
             "name": "luis",
             "id": 1,
+            "color": "102",
             "player_location": {
                 "pos_x": 0,
                 "pos_y": 0
@@ -20,8 +39,37 @@
             }
         },
         {
+            "name": "luis 2",
+            "id": 4,
+            "color": "125",
+            "player_location": {
+                "pos_x": 100,
+                "pos_y": 50
+            },
+            "player_object": {
+                "type": "square",
+                "width": "20",
+                "height": "20"
+            }
+        },
+        {
+            "name": "luis 3",
+            "id": 5,
+            "color": "034",
+            "player_location": {
+                "pos_x": 50,
+                "pos_y": 100
+            },
+            "player_object": {
+                "type": "square",
+                "width": "20",
+                "height": "20"
+            }
+        },
+        {
             "name": "adam",
             "id": 2,
+            "color": "191",
             "player_location": {
                 "pos_x": 0,
                 "pos_y": 0
@@ -34,6 +82,7 @@
         {
             "name": "dexter",
             "id": 3,
+            "color": "200",
             "player_location": {
                 "pos_x": 0,
                 "pos_y": 0

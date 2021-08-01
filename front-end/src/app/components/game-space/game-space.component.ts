@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Game } from 'src/app/classes/game/game';
-
-import * as p5 from "p5";
+import { GameUpdatesService } from 'src/app/services/game-updates.service';
 
 @Component({
   selector: 'app-game-space',
@@ -11,9 +10,9 @@ import * as p5 from "p5";
 export class GameSpaceComponent implements OnInit {
   public game!: Game;
 
-  constructor() { }
+  constructor(private gameAPI:GameUpdatesService) { }
 
   ngOnInit(): void {
-    this.game = new Game();
+    this.game = new Game(this.gameAPI);
   }
 }

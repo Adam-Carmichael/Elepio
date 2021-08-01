@@ -8,6 +8,8 @@ interface Location {
 export interface Player {
     id: number,
     name: string,
+    color:string,
+    unique_id?:string,
     player_location: Location,
     player_object: Square & Circle & Triangle
 }

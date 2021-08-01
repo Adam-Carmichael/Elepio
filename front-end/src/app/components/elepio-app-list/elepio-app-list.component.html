@@ -2,4 +2,68 @@
     Test component to be used as a reference for game-space component
 -->
 
-<p>elepio-app-list works!</p>
+<div class="list row">
+    <div class="col-md-8">
+        <div class="input-group mb-3">
+            <input
+                type="text"
+                class="form-control"
+                placeholder="Search by Title"
+                [(ngModel)]="title"
+            />
+            <div class="input-group-append">
+                <button
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    (click)="searchTitle()"
+                >
+                    Search
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="cold-md-6">
+        <h4>ElepioApps List</h4>
+        <ul class="list-group">
+            <li
+                class="list-group-item"
+                *ngFor="let elepioApp of elepioApps; let i = index"
+                [class.active]="i == currentIndex"
+                (click)="setActiveElepioApp(elepioApp, i)"
+            >
+                {{ elepioApp.title }}
+            </li>
+        </ul>
+
+        <button class="m-3 btn btn-sm btn-danger" (click)="removeAllElepioApps()">
+            Remove All
+        </button>
+    </div>
+
+    <div class="cold-md-6">
+        <div *ngIf="currentElepioApp.id">
+            <h4>ElepioApp</h4>
+            <div>
+                <label><strong>Title:</strong></label> {{ currentElepioApp.title }}
+            </div>
+            <div>
+                <label><strong>Description:</strong></label>
+                {{ currentElepioApp.description }}
+            </div>
+            <div>
+                <label><strong>Status:</strong></label>
+                {{ currentElepioApp.published ? "Published" : "Pending" }}
+            </div>
+
+            <a class="badge badge-warning" routerLink="/elepioApp/{{ currentElepioApp.id }}">
+                Edit
+            </a>
+        </div>
+
+        <div *ngIf="!currentElepioApp">
+            <br />
+            <p>Please click on an ElepioApp...</p>
+        </div>
+    </div>
+</div>

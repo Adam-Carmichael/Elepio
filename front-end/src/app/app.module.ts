@@ -10,6 +10,7 @@ import { ElepioAppDetailsComponent } from './components/elepio-app-details/elepi
 import { ElepioAppListComponent } from './components/elepio-app-list/elepio-app-list.component';
 
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
@@ -21,8 +22,11 @@ import { HttpClientModule } from '@angular/common/http';
     ElepioAppListComponent
   ],
   imports: [
+    CommonModule,
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    FormsModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]

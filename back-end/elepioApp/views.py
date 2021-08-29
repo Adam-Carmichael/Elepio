@@ -6,7 +6,22 @@ from rest_framework import status
  
 from elepioApp.models import ElepioApp
 from elepioApp.serializers import ElepioAppSerializer
+
+from elepioApp.models import Board
+from elepioApp.serializers import BoardSerializer
+
+from elepioApp.models import Player
+from elepioApp.serializers import PlayerSerializer
+
 from rest_framework.decorators import api_view
+
+@api_view(['GET'])
+def getBoard(request):
+    board = Board.objects.filter(active=True).filter(player_count__lte=99)[:1]
+
+    if request.method == 'GET':
+        boardSerializer = BoardSerializer(board)
+        return JsonResponse(boardSerializer.data, safe=False)
 
 @api_view(['GET', 'POST', 'DELETE'])
 def elepioApp_list(request):
@@ -80,3 +95,4 @@ def elepioApp_list_published(request):
     if request.method == 'GET':
         elepioApps_serializer = ElepioAppSerializer(elepioApps, many=True)
         return JsonResponse(elepioApps_serializer.data, safe=False)
+

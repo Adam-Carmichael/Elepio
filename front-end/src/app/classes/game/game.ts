@@ -1,12 +1,11 @@
 import { ViewChild, ElementRef } from "@angular/core";
 import { Player } from "../player/player";
-import * as p5 from "p5";
-import * as boardInfo from "../../demo_data/board.json";
-import { Direction } from "../../interfaces/common.interface";
-import { Square } from "../square/square";
+import p5 from "p5";
+
 import { GameUpdatesService } from "src/app/services/game-updates.service";
 import { Player as PlayerInterface } from "src/app/interfaces/player.interface";
-
+import { ShapeType } from "../../interfaces/common.interface";
+import { Square } from "../square/square";
 
 export class Game {
     private p5: any;
@@ -16,22 +15,24 @@ export class Game {
     private board_height: string;
     private players: Array<Player> = [];
     private currentPlayer: PlayerInterface;
+    private boardInfo: any;
 
     constructor(private gameAPI: GameUpdatesService) {
-        let createNewPlayer = true;
-        let boardInfo = this.getBoardInfo(createNewPlayer);
 
-        this.currentPlayer = boardInfo.newPlayer;
-        this.background_color = boardInfo.board.background_color;
-        this.board_width = boardInfo.board.width;
-        this.board_height = boardInfo.board.height;
+        this.boardInfo = this.getBoardInfo();
 
-        this.players = this.createPlayerObjects(boardInfo.players);
+        this.currentPlayer = this.boardInfo.currentPlayer[0];
+
+        this.background_color = this.boardInfo.board.background_color;
+        this.board_width = this.boardInfo.board.width;
+        this.board_height = this.boardInfo.board.height;
+
+        this.players = this.createPlayerObjects([this.boardInfo.currentPlayer]);
 
         this.createCanvas();
     }
 
-    private getBoardInfo(createNewPlayer?:boolean) {
+    private getBoardInfo(createNewPlayer?: boolean) {
         /*
         //Make API call to populate board data - players and details
         //Signal to server to create a new player on first load
@@ -42,10 +43,11 @@ export class Game {
             }
         );
          */
-        return boardInfo;
+        return this.getJSONboard();
     }
 
-    private updateGameDataFromBoardInfo(){
+
+    private updateGameDataFromBoardInfo() {
         return 0;
     }
 
@@ -60,12 +62,10 @@ export class Game {
 
     private createCanvas() {
         this.p5 = new p5((p) => {
-            p.preload = () => {}
+            p.preload = () => { }
 
             p.setup = () => {
-                console.log(p);
-
-                p.createCanvas(this.board_height,this.board_width);
+                p.createCanvas(this.board_height, this.board_width);
                 p.background(0);
                 p.fill(255);
             }
@@ -75,22 +75,125 @@ export class Game {
                 p.background(0);
 
 
-                this.players[0].x += 10; 
+                this.players[0].x += 10;
                 //TODO: Send user the location of the mouse
                 //server will upate the location
                 this.gameAPI.updatePlayerLocation();
 
                 for (var player of this.players) {
                     p.fill(player.color);
-                    p.rect(player.x, player.y, player.player_object.width, player.player_object.width);
+                    if (player.player_object instanceof Square) {
+                        p.rect(player.x, player.y, player.player_object.width, player.player_object.width);
+                    }
                 }
             }
 
         });
-
-
-
     }
+
+    public getJSONboard() {
+        return {
+            "board": {
+                "width": "500",
+                "height": "500",
+                "background_color": "black",
+                "unique_id": "38f23eje",
+                "obstacles": {},
+                "active": true,
+                "size": "100"
+            },
+            "newPlayer": {
+                "name": "luis 2",
+                "id": 4,
+                "color": "125",
+                "unique_id": "238e398hf",
+                "player_location": {
+                    "pos_x": 100,
+                    "pos_y": 50
+                },
+                "player_object": {
+                    "type": "square" as ShapeType,
+                    "width": "20",
+                    "height": "20"
+                }
+            },
+            "currentPlayer":
+            {
+                "name": "luis",
+                "id": 1,
+                "color": "102",
+                "player_location": {
+                    "pos_x": 0,
+                    "pos_y": 0
+                },
+                "player_object": {
+                    "type": "square" as ShapeType,
+                    "width": "20",
+                    "height": "20"
+                }
+            },
+            "players": [
+
+                {
+                    "name": "luis 2",
+                    "id": 4,
+                    "color": "125",
+                    "player_location": {
+                        "pos_x": 100,
+                        "pos_y": 50
+                    },
+                    "player_object": {
+                        "type": "square" as ShapeType,
+                        "width": "20",
+                        "height": "20"
+                    }
+                },
+                {
+                    "name": "luis 3",
+                    "id": 5,
+                    "color": "034",
+                    "player_location": {
+                        "pos_x": 50,
+                        "pos_y": 100
+                    },
+                    "player_object": {
+                        "type": "square" as ShapeType,
+                        "width": "20",
+                        "height": "20"
+                    }
+                },
+                {
+                    "name": "adam",
+                    "id": 2,
+                    "color": "191",
+                    "player_location": {
+                        "pos_x": 0,
+                        "pos_y": 0
+                    },
+                    "player_object": {
+                        "type": "circle" as ShapeType,
+                        "radius": "10px"
+                    }
+                },
+                {
+                    "name": "dexter",
+                    "id": 3,
+                    "color": "200",
+                    "player_location": {
+                        "pos_x": 0,
+                        "pos_y": 0
+                    },
+                    "player_object": {
+                        "type": "triangle" as ShapeType,
+                        "width": "20px"
+                    }
+                }
+            ]
+        }
+    }
+
+
+
 
 
 
@@ -105,7 +208,7 @@ export class Game {
     //p.stroke();
     //p.mouseIsPressed && s.mouseButton && s.mouseX && s.pmouseX && s.mouseReleased && s.keyPressed
 
-// p.windowHeight p.windowWidth
+    // p.windowHeight p.windowWidth
 
 
 

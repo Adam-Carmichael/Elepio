@@ -1,8 +1,19 @@
 export enum YesNo {
-    YES = 'Y',
-    NO = 'N',
+    yes = 'yes',
+    no = 'no',
 }
-export type Direction = "up" | "down" | "left" | "right";
-export type ShapeType = "triangle"|"square" |"circle";
 
+export enum Direction {
+    up = "up",
+    down = "down",
+    left = "left",
+    right =  "right"
+}
 
+export type ShapeType = "square" | "circle" | "triangle";
+/*
+export enum ShapeType {
+    square = "square",
+    circle = "circle" ,
+    triangle = "triangle"
+}*/

@@ -1,4 +1,4 @@
-import { Square, Circle, Triangle } from './player_objects.interface';
+import { Square, Circle, Triangle, Shape } from './player_objects.interface';
 
 interface Location {
     pos_x: number,
@@ -11,5 +11,5 @@ export interface Player {
     color:string,
     unique_id?:string,
     player_location: Location,
-    player_object: Square & Circle & Triangle
+    player_object: Square | Triangle | Circle
 }

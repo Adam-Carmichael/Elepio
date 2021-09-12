@@ -9,17 +9,17 @@ class ElepioApp(models.Model):
 # The board class, used for keeping track of the board's dimensions
 class Board(models.Model):
     active = models.BooleanField(default=True)
+    bg_color = models.CharField(max_length=7, blank=False, default='#FFFFFF')
+    height = models.IntegerField(blank=False, default=1000)
     player_count = models.IntegerField(blank=False, default=100)
     player_max = models.IntegerField(blank=False, default=100)
-    width = models.IntegerField(blank=False, default='')
-    height = models.IntegerField(blank=False, default='')
-    bg_color = models.CharField(max_length=30, blank=False, default='#FFFFFF')
+    width = models.IntegerField(blank=False, default=1000)
 
 # The player class, used for keeping track of player location and board player is associated with
 class Player(models.Model):
+    color = models.CharField(max_length=7, blank=False, default='#FFFFFF')
     name = models.CharField(max_length=10, blank=True, default='')
-    color = models.IntegerField(blank=False, default='#FFFFFF')
-    pos_x = models.CharField(max_length=100000, blank=False, null=True)
-    pos_y = models.CharField(max_length=100000, blank=False, null=True)
-    type = models.CharField(max_length=50, blank=False, default='square')
-    radius = models.CharField(max_length=5, blank=False, default='10px')
+    pos_x = models.IntegerField(blank=False, null=True)
+    pos_y = models.IntegerField(blank=False, null=True)
+    radius = models.IntegerField(blank=False, default=5)
+    type = models.CharField(max_length=50, blank=False, default='circle')

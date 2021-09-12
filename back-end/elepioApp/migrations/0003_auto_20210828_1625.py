@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='board',
             name='height',
-            field=models.IntegerField(default=''),
+            field=models.IntegerField(default=1000),
         ),
         migrations.AddField(
             model_name='board',
@@ -38,12 +38,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='board',
             name='width',
-            field=models.IntegerField(default=''),
+            field=models.IntegerField(default=1000),
         ),
         migrations.AddField(
             model_name='player',
             name='color',
-            field=models.IntegerField(default='#FFFFFF'),
+            field=models.CharField(default='#FFFFFF'),
         ),
         migrations.AddField(
             model_name='player',

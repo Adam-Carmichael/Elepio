@@ -19,9 +19,46 @@ from rest_framework.decorators import api_view
 def getBoard(request):
     board = Board.objects.filter(active=True).filter(player_count__lte=99)[:1]
 
+    if request.method == "GET":
+        boardSerializer = BoardSerializer(board, many=True)
+        return JsonResponse(boardSerializer.data, safe=False)
+
+    """
+    board = Board.objects.filter(active=True).filter(player_count__lte=99)[:1]
+
     if request.method == 'GET':
         boardSerializer = BoardSerializer(board)
         return JsonResponse(boardSerializer.data, safe=False)
+    """
+    
+@api_view(['POST'])
+def createBoard(request):
+    board_data = JSONParser().parse(request)
+    boardSerializer = BoardSerializer(data=board_data) # one parm = create new instance
+
+    if boardSerializer.is_valid(): # method of serializer to compare passed data to required model structure
+        boardSerializer.save()
+        return JsonResponse(boardSerializer.data, status=status.HTTP_201_CREATED) 
+        
+    return JsonResponse(boardSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def getPlayer(request):
+    player = Player.objects.all()
+
+    playerSerializer = PlayerSerializer(player, many=True)
+    return JsonResponse(playerSerializer.data, safe=False)
+
+@api_view(['POST'])
+def createPlayer(request):
+    player_data = JSONParser().parse(request)
+    playerSerializer = PlayerSerializer(data=player_data)
+
+    if (playerSerializer.is_valid()):
+        playerSerializer.save()
+        return JsonResponse(playerSerializer.data, status=status.HTTP_201_CREATED)
+
+    return JsonResponse(playerSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'POST', 'DELETE'])
 def elepioApp_list(request):

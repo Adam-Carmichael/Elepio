@@ -19,19 +19,20 @@ class BoardSerializer(serializers.ModelSerializer):
         model = Board
         fields = ('id',
                   'active',
+                  'bg_color',
+                  'height',
                   'player_count',
                   'player_max',
-                  'width',
-                  'bg_color')
+                  'width')
 
 class PlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
         fields = ('id',
-                  'name',
                   'color',
+                  'name',
                   'pos_x',
                   'pos_y',
-                  'type',
-                  'radius')
+                  'radius',
+                  'type')

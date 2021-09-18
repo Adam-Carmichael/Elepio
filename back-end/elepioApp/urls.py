@@ -4,7 +4,9 @@ from elepioApp import views
 urlpatterns = [
     url(r'^api/getBoard$', views.getBoard),
     url(r'^api/createBoard$', views.createBoard),
-    url(r'^api/getPlayer$', views.getPlayer),
+    url(r'^api/getPlayer/(?P<pk>\d+)$', views.getPlayer),
+    url(r'^api/getPlayers$', views.getPlayers),
+    url(r'^api/updatePlayer/(?P<pk>\d+)$', views.updatePlayer),
     url(r'^api/createPlayer$', views.createPlayer),
     url(r'^api/elepioApp$', views.elepioApp_list),
     url(r'^api/elepioApp/(?P<pk>[0-9]+)$', views.elepioApp_detail),

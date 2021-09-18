@@ -20,45 +20,64 @@ def getBoard(request):
     board = Board.objects.filter(active=True).filter(player_count__lte=99)[:1]
 
     if request.method == "GET":
-        boardSerializer = BoardSerializer(board, many=True)
-        return JsonResponse(boardSerializer.data, safe=False)
-
-    """
-    board = Board.objects.filter(active=True).filter(player_count__lte=99)[:1]
-
-    if request.method == 'GET':
-        boardSerializer = BoardSerializer(board)
-        return JsonResponse(boardSerializer.data, safe=False)
-    """
+        board_serializer = BoardSerializer(board, many=True)
+        return JsonResponse(board_serializer.data, safe=False)
     
 @api_view(['POST'])
 def createBoard(request):
     board_data = JSONParser().parse(request)
-    boardSerializer = BoardSerializer(data=board_data) # one parm = create new instance
+    board_serializer = BoardSerializer(data=board_data) # one parm = create new instance
 
-    if boardSerializer.is_valid(): # method of serializer to compare passed data to required model structure
-        boardSerializer.save()
-        return JsonResponse(boardSerializer.data, status=status.HTTP_201_CREATED) 
+    if board_serializer.is_valid(): # method of serializer to compare passed data to required model structure
+        board_serializer.save()
+        return JsonResponse(board_serializer.data, status=status.HTTP_201_CREATED) 
         
-    return JsonResponse(boardSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return JsonResponse(board_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-def getPlayer(request):
+def getPlayer(pk):
+    try:
+        player = Player.objects.get(pk=pk)
+    except Player.DoesNotExist:  
+        return JsonResponse({'message': 'Does not exist'}, status=status.HTTP_404_NOT_FOUND) 
+
+    player_serializer = PlayerSerializer(player)
+    return JsonResponse(player_serializer.data, safe=False)
+
+@api_view(['GET'])
+def getPlayers():
     player = Player.objects.all()
 
-    playerSerializer = PlayerSerializer(player, many=True)
-    return JsonResponse(playerSerializer.data, safe=False)
+    player_serializer = PlayerSerializer(player, many=True)
+    return JsonResponse(player_serializer.data, safe=False)
+
+@api_view(['PATCH'])
+def updatePlayer(request, pk):
+    player = Player
+    
+    try:
+        player = Player.objects.get(pk=pk)
+    except Player.DoesNotExist:
+        return JsonResponse({'message': 'Does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+    player_update = JSONParser().parse(request)
+    player_serializer = PlayerSerializer(player, data=player_update, partial=True)
+
+    if (player_serializer.is_valid()):
+        player_serializer.save()
+        return JsonResponse(player_serializer.data)
+    return JsonResponse(player_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def createPlayer(request):
     player_data = JSONParser().parse(request)
-    playerSerializer = PlayerSerializer(data=player_data)
+    player_serializer = PlayerSerializer(data=player_data)
 
-    if (playerSerializer.is_valid()):
-        playerSerializer.save()
-        return JsonResponse(playerSerializer.data, status=status.HTTP_201_CREATED)
+    if (player_serializer.is_valid()):
+        player_serializer.save()
+        return JsonResponse(player_serializer.data, status=status.HTTP_201_CREATED)
 
-    return JsonResponse(playerSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return JsonResponse(player_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'POST', 'DELETE'])
 def elepioApp_list(request):

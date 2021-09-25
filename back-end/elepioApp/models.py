@@ -17,7 +17,7 @@ class Board(models.Model):
 
 # The player class, used for keeping track of player location and board player is associated with
 class Player(models.Model):
-    #board = models.ForeignKey('')
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, default='')
     color = models.CharField(max_length=7, blank=False, default='#FFFFFF')
     name = models.CharField(max_length=10, blank=True, default='')
     pos_x = models.IntegerField(blank=False, null=True)

@@ -30,6 +30,7 @@ class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
         fields = ('id',
+                  'board',
                   'color',
                   'name',
                   'pos_x',

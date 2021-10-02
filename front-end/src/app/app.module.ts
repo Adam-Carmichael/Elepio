@@ -5,7 +5,7 @@ import { HttpClientModule } from "@angular/common/http";
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { GameSpaceComponent } from './components/game-space/game-space.component';
-import { GameUpdatesService } from './services/game-updates.service';
+import { GameService } from './services/game/game.service';
 
 @NgModule({
   imports: [
@@ -17,7 +17,7 @@ import { GameUpdatesService } from './services/game-updates.service';
     AppComponent,
     GameSpaceComponent
   ],
-  providers: [GameUpdatesService],
+  providers: [GameService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

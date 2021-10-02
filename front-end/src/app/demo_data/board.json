@@ -1,95 +1,105 @@
 {
     "board": {
-        "width": "500",
-        "height": "500",
-        "background_color": "black",
-        "unique_id":"38f23eje",
-        "obstacles":{},
-        "active":true,
-        "size":"100"
+        "width": 1000,
+        "height": 1000,
+        "color": "black",
+        "unique_id": "38f23eje",
+        "obstacles": {},
+        "active": true,
+        "size": "100"
     },
-    "newPlayer": {
+    "currentPlayer": {
         "name": "luis 2",
         "id": 4,
-        "color": "125",
         "unique_id": "238e398hf",
-        "player_location": {
-            "pos_x": 100,
-            "pos_y": 50
-        },
+    
         "player_object": {
-            "type": "square",
-            "width": "20",
-            "height": "20"
+            "type": "circle",
+            "color": "#d3d",
+            "width": 20,
+            "height": 20,
+            "pos_x": 0,
+            "pos_y": 0,
+            "radius":20
         }
     },
-    "players": [
+    "enemyPlayers":[
+        {
+            "name": "luis 2",
+            "id": 4,
+ 
+            "player_object": {
+                "type": "circle",
+                "color": "#aaa",
+                "pos_x": 100,
+                "pos_y": 100,
+                "radius":50
+            }
+        }
+    ],
+    "enemyPlayers2": [
         {
             "name": "luis",
             "id": 1,
-            "color": "102",
-            "player_location": {
-                "pos_x": 0,
-                "pos_y": 0
-            },
+
             "player_object": {
                 "type": "square",
-                "width": "20",
-                "height": "20"
+                "color": "#0f0",
+                "width": 20,
+                "height": 20,
+                "pos_x": 39,
+                "pos_y": 10
             }
         },
         {
             "name": "luis 2",
             "id": 4,
             "color": "125",
-            "player_location": {
-                "pos_x": 100,
-                "pos_y": 50
-            },
+ 
             "player_object": {
                 "type": "square",
-                "width": "20",
-                "height": "20"
+                "color": "#aaa",
+                "width": 20,
+                "height": 20,
+                "pos_x": 100,
+                "pos_y": 50
             }
         },
         {
             "name": "luis 3",
             "id": 5,
-            "color": "034",
-            "player_location": {
-                "pos_x": 50,
-                "pos_y": 100
-            },
+  
             "player_object": {
                 "type": "square",
-                "width": "20",
-                "height": "20"
+                "color": "#252",
+                "width": 20,
+                "height": 20,
+                "pos_x": 50,
+                "pos_y": 100
             }
         },
         {
             "name": "adam",
             "id": 2,
-            "color": "191",
-            "player_location": {
-                "pos_x": 0,
-                "pos_y": 0
-            },
+
             "player_object": {
                 "type": "circle",
-                "radius": "10px"
+                "color": "#a90",
+                "radius": 10,
+                "pos_x": 343,
+                "pos_y": 190
             }
         },
         {
             "name": "dexter",
             "id": 3,
-            "color": "200",
-            "player_location": {
-                "pos_x": 0,
-                "pos_y": 0
-            },
             "player_object": {
                 "type": "triangle",
-                "width": "20px"
+                "color": "#1f3",
+                "width": 20,
+                "height":20,
+                "pos_x": 203,
+                "pos_y": 54
             }
         }
     ]

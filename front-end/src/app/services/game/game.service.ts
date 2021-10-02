@@ -4,13 +4,13 @@ import { HttpClient, HttpErrorResponse, HttpResponse } from "@angular/common/htt
 import { Observable } from 'rxjs';
 import { catchError, retry } from "rxjs/operators"
 import { throwError } from 'rxjs';
-
+import { ILocation } from 'src/app/interfaces/interfaces';
 const api = "https://api.spotify.com/v1/search?q=gold";
 
 @Injectable({
   providedIn: 'root'
 })
-export class GameUpdatesService {
+export class GameService {
   private headers: any;
   private config: any;
 
@@ -27,8 +27,13 @@ export class GameUpdatesService {
     return this.http.post(`${api}/player`, {});
   }
 
-  updatePlayerLocation(){
-    return false;
+  updatePlayerLocation(currentMousePos: ILocation):ILocation{
+    var newPos = {
+      pos_x: 0,
+      pos_y: 0
+    };
+    
+    return newPos;
   }
 
   private handleError(response: HttpErrorResponse) {

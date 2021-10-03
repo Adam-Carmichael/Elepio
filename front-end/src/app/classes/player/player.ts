@@ -63,6 +63,7 @@ export class Player {
     
     public died(){
         this.alive = false;
+        console.log("DEAD PLAYER - Coordinates:",this.pos)
     }
 
     public draw() {
@@ -117,28 +118,37 @@ export class Player {
         if(!this.alive || !enemyPlayer.isAlive()){
             return false;
         }
+        
+        var inEnemySpace = false;
 
         var enemyPlayerObject = enemyPlayer.getPlayerObject();
-        if(this.player_object instanceof Circle && 
-            enemyPlayerObject instanceof Circle){
+        if(this.player_object instanceof Circle && enemyPlayerObject instanceof Circle){
+        
             var currentPlayerRadius = this.player_object.getRadius();
             var enemyPlayerRadius = enemyPlayerObject.getRadius();
             
-            var currentPlayerSA = Math.PI * (currentPlayerRadius^2);
-            var enemyPlayerSA = Math.PI * (enemyPlayerRadius^2);
+            var currentPlayerSA = Math.PI * Math.pow(currentPlayerRadius,2);
+            var enemyPlayerSA = Math.PI * Math.pow(enemyPlayerRadius,2);
 
-            if(enemyPlayerSA){
-            
+            //Current Player has to be bigger than the enemy player
+            if(enemyPlayerSA >= currentPlayerSA){
+                return false;
             }
-            if(currentPlayerSA){
             
+            var xDelta = Math.pow((enemyPlayer.getPosX() - this.pos.x),2);
+            var yDelta = Math.pow((enemyPlayer.getPosY() - this.pos.y),2);
+            var distance = Math.sqrt(xDelta + yDelta);
+
+            inEnemySpace = this.player_object.getRadius() >= distance;
+            if(inEnemySpace){
+                this.player_object.incrementRadius(4);
             }
         }
 
-        var currentPlayerSA = 3;
-
-        return true;
+        return inEnemySpace;
     }
+
+
 
     public intersectsPlayer(enemyPlayer: Player) {
         if(!this.alive || !enemyPlayer.isAlive()){

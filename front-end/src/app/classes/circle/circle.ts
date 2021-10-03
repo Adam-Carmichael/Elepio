@@ -10,4 +10,7 @@ export class Circle extends Shape{
     public getRadius(){
         return this.radius;
     }
+    public incrementRadius(increment:number){
+        this.radius += increment;
+    }
 }

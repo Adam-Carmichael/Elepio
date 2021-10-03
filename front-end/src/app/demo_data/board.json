@@ -20,7 +20,7 @@
             "height": 20,
             "pos_x": 0,
             "pos_y": 0,
-            "radius":20
+            "radius":50
         }
     },
     "enemyPlayers":[
@@ -33,7 +33,43 @@
                 "color": "#aaa",
                 "pos_x": 100,
                 "pos_y": 100,
-                "radius":50
+                "radius":25
+            }
+        },
+        {
+            "name": "luis 2",
+            "id": 4,
+ 
+            "player_object": {
+                "type": "circle",
+                "color": "#aaa",
+                "pos_x": 20,
+                "pos_y": 130,
+                "radius":40
+            }
+        },
+        {
+            "name": "luis 2",
+            "id": 4,
+ 
+            "player_object": {
+                "type": "circle",
+                "color": "#aaa",
+                "pos_x": 200,
+                "pos_y": 300,
+                "radius":20
+            }
+        },
+        {
+            "name": "luis 2",
+            "id": 4,
+ 
+            "player_object": {
+                "type": "circle",
+                "color": "#aaa",
+                "pos_x": 500,
+                "pos_y": 500,
+                "radius":35
             }
         }
     ],

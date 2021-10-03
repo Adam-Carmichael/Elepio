@@ -74,7 +74,7 @@ export class Board {
             let velocity = this.p5.createVector(velocity_x, velocity_y);
             this.currentPlayer.updatePlayerPosition(velocity);
             
-            
+
             var player_object = this.currentPlayer.getPlayerObject();
             if(player_object instanceof Circle){
                 p.translate(p.width/2, p.height/2);
@@ -98,7 +98,7 @@ export class Board {
 
             for (let i = 0; i < this.enemyPlayers.length; i++) {
                 let enemyPlayer = this.enemyPlayers[i];
-                if(this.currentPlayer.intersectsPlayer(enemyPlayer)){
+                if(this.currentPlayer.eatsPlayer(enemyPlayer)){
                     enemyPlayer.died();
                 }
             }

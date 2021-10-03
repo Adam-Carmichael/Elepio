@@ -77,15 +77,28 @@ WSGI_APPLICATION = 'back-end.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': 'Elepio',
         'USERNAME': 'elepio_admin',
-        'PASSWORD': 'A4zuWQoU5YwCvdX6',
-        'HOST': 'mongodb+srv://elepio_admin:A4zuWQoU5YwCvdX6@cluster0.02gp5.mongodb.net/Elepio?retryWrites=true&w=majority',
+        'PASSWORD': 'GMpblUA898oclres',
+        'HOST': 'mongodb+srv://elepio_admin:GMpblUA898oclres@cluster0.02gp5.mongodb.net/Elepio?retryWrites=true&w=majority',
         'PORT': 27017,
+    }
+}
+"""
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'djongo',
+        'CLIENT': {
+                'host': 'mongodb+srv://elepio_admin:GMpblUA898oclres@cluster0.02gp5.mongodb.net/Elepio?retryWrites=true&w=majority',
+                'username': 'elepio_admin',
+                'password': 'GMpblUA898oclres',
+                'authMechanism': 'SCRAM-SHA-1',
+        }
     }
 }
 

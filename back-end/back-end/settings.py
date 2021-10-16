@@ -93,6 +93,7 @@ DATABASES = {
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
+        'NAME': 'Elepio',
         'CLIENT': {
                 'host': 'mongodb+srv://elepio_admin:GMpblUA898oclres@cluster0.02gp5.mongodb.net/Elepio?retryWrites=true&w=majority',
                 'username': 'elepio_admin',

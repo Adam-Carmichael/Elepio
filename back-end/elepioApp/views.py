@@ -35,7 +35,7 @@ def createBoard(request):
     return JsonResponse(board_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-def getPlayer(pk):
+def getPlayer(self, pk):
     try:
         player = Player.objects.get(pk=pk)
     except Player.DoesNotExist:  
@@ -45,7 +45,7 @@ def getPlayer(pk):
     return JsonResponse(player_serializer.data, safe=False)
 
 @api_view(['GET'])
-def getPlayers():
+def getPlayers(self):
     player = Player.objects.all()
 
     player_serializer = PlayerSerializer(player, many=True)

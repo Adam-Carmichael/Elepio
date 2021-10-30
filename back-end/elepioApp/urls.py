@@ -2,7 +2,7 @@ from django.conf.urls import url
 from elepioApp import views 
  
 urlpatterns = [
-    url(r'^api/getBoard$', views.getBoard),
+    url(r'^api/getFirstActiveBoard$', views.getFirstActiveBoard),
     url(r'^api/createBoard$', views.createBoard),
     url(r'^api/getPlayer/(?P<pk>\d+)$', views.getPlayer),
     url(r'^api/getPlayers$', views.getPlayers),

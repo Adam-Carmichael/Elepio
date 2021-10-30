@@ -16,12 +16,13 @@ from elepioApp.serializers import PlayerSerializer
 from rest_framework.decorators import api_view
 
 @api_view(['GET'])
-def getBoard(request):
-    board = Board.objects.filter(active=True).filter(player_count__lte=99)[:1]
+def getFirstActiveBoard(request):
+    board = Board.objects.filter(active=True).filter(player_count__lte=99)[:1]  # retrieve a single active board whose playercount is less than or equal to 99
 
     if request.method == "GET":
         board_serializer = BoardSerializer(board, many=True)
-        return JsonResponse(board_serializer.data, safe=False)
+        data = board_serializer.data[0]     # remove item from array: doesn't make sense to have a single item be in an array
+        return JsonResponse(data, safe=False)
     
 @api_view(['POST'])
 def createBoard(request):

@@ -6,6 +6,7 @@ urlpatterns = [
     url(r'^api/createBoard$', views.createBoard),
     url(r'^api/getPlayer/(?P<pk>\d+)$', views.getPlayer),
     url(r'^api/getPlayers$', views.getPlayers),
+    url(r'^api/getPlayersByBoardID/(?P<fk>\d+)$', views.getPlayersByBoardID),
     url(r'^api/updatePlayer/(?P<pk>\d+)$', views.updatePlayer),
     url(r'^api/createPlayer$', views.createPlayer),
     url(r'^api/elepioApp$', views.elepioApp_list),

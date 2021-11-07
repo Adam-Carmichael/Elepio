@@ -52,6 +52,17 @@ def getPlayers(self):
     player_serializer = PlayerSerializer(player, many=True)
     return JsonResponse(player_serializer.data, safe=False)
 
+@api_view(['GET'])
+def getPlayersByBoardID(request, fk): # fk stands for foreign key
+    try:
+        players = Player.objects.filter(board_id=fk)
+    except Player.DoesNotExist:
+        return JsonResponse({'message': 'There are no players associated with board ID ' + fk}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == "GET":
+        player_serializer = PlayerSerializer(players, many=True)
+        return JsonResponse(player_serializer.data, safe=False)
+
 @api_view(['PATCH'])
 def updatePlayer(request, pk):
     player = Player

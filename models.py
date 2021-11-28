@@ -10,17 +10,17 @@ from mongoengine.fields import StringField
 
 # The board class, used for keeping track of the board's dimensions
 class Board(me.Model):
-    active = me.BooleanField(required=True)
-    bg_color = me.StringField(max_length=7, blank=False, default='#FFFFFF')
-    height = me.IntField(blank=False, default=1000)
-    player_count = me.IntField(blank=False, default=100)
-    player_max = me.IntField(blank=False, default=100)
-    width = me.IntField(blank=False, default=1000)
+    active = me.BooleanField(default=True, required=False)
+    bg_color = me.StringField(default='#FFFFFF', required=False, min_length=7, max_length=7)
+    height = me.IntField(default=1000, required=False, min_value=1000, max_value=40000)
+    player_count = me.IntField(default=0, required=False)
+    player_max = me.IntField(default=100, required=False)
+    width = me.IntField(default=1000, required=False, min_value=1000, max_value=20000)
 
 # The player class, used for keeping track of player location and board player is associated with
 class Player(me.Model):
-    board = me.ReferenceField(Board, on_delete=me.CASCADE, required=True)
-    color = me.StringField(max_length=7, blank=False, default='#FFFFFF')
+    board = me.ReferenceField(Board, required=True, passthrough=False, reverse_delete_rule=me.CASCADE)
+    color = me.StringField(default='#000000', required=False, max_length=7)
     name = me.StringField(max_length=10, blank=True, required=False)
     pos_x = me.IntField(blank=False, null=True)
     pos_y = me.IntField(blank=False, null=True)

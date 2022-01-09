@@ -2,6 +2,7 @@ import mongoengine as ME
 
 # The board class, used for keeping track of the board's dimensions
 class Board(ME.Document):
+    board_id = ME.IntField(db_field='id')
     active = ME.BooleanField(default=True)
     bg_color = ME.StringField(default='#FFFFFF', min_length=7, max_length=7)
     height = ME.IntField(default=1000, min_value=1000, max_value=40000)
@@ -12,6 +13,7 @@ class Board(ME.Document):
 
 # The player class, used for keeping track of player location and board player is associated with
 class Player(ME.Document):
+    player_id = ME.IntField(db_field='id')
     board = ME.ReferenceField(Board, required=True, passthrough=False, reverse_delete_rule=ME.CASCADE)
     color = ME.StringField(default='#000000', max_length=7)
     name = ME.StringField(default='', max_length=10)

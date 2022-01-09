@@ -27,9 +27,19 @@ def elepio_doc():
 ###
 #####################################
 
+@app.route('/api/getBoard/<board_id>', methods=['GET'])
+def get_board(board_id: int):
+    board = Board.objects(board_id=board_id)
+    if not board:
+        return "There is no board by that ID", 404
+
+    return jsonify(board), 200
+
 @app.route('/api/getBoards', methods=['GET'])
 def get_boards():
     boards = Board.objects()
+    if not boards:
+        return "There are no boards", 404
 
     return jsonify(boards), 200
 
@@ -41,9 +51,19 @@ def get_boards():
 ###
 ######################################
 
+@app.route('/api/getPlayer/<player_id>', methods=['GET'])
+def get_player(player_id: int):
+    player = Player.objects(player_id=player_id)
+    if not player:
+        return "There is no player by that ID", 404
+
+    return jsonify(player), 200
+
 @app.route('/api/getPlayers', methods=['GET'])
 def get_players():
     players = Player.objects()
+    if not players:
+        return "There are no players", 404
 
     return jsonify(players), 200
 

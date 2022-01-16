@@ -5,6 +5,8 @@ from flask_mongoengine import MongoEngine
 from flask import request
 from flask import jsonify
 
+from mongoengine.errors import FieldDoesNotExist, ValidationError
+
 from app.models import Board
 from app.models import Player
 
@@ -27,15 +29,7 @@ def elepio_doc():
 ###
 #####################################
 
-@app.route('/api/getBoard/<board_id>', methods=['GET'])
-def get_board(board_id: int):
-    board = Board.objects(board_id=board_id)
-    if not board:
-        return "There is no board by that ID", 404
-
-    return jsonify(board), 200
-
-@app.route('/api/getBoards', methods=['GET'])
+@app.route('/api/boards', methods=['GET'])
 def get_boards():
     boards = Board.objects()
     if not boards:
@@ -43,6 +37,26 @@ def get_boards():
 
     return jsonify(boards), 200
 
+@app.route('/api/boards', methods=['POST'])
+def create_board():
+    try:
+        data = request.get_json()
+        board = Board(**data)
+        board.save()
+    except ValidationError:
+        return "Validation error thrown, please check your posted body for errors", 400
+    except FieldDoesNotExist:
+        return "Field does not exist error thrown, please check your posted body for errors", 400
+    
+    return "Board created", 204
+
+@app.route('/api/boards/<board_id>', methods=['GET'])
+def get_board(board_id: int):
+    board = Board.objects(board_id=board_id)
+    if not board:
+        return "There is no board by that ID", 404
+
+    return jsonify(board), 200
 
 
 ######################################
@@ -51,15 +65,7 @@ def get_boards():
 ###
 ######################################
 
-@app.route('/api/getPlayer/<player_id>', methods=['GET'])
-def get_player(player_id: int):
-    player = Player.objects(player_id=player_id)
-    if not player:
-        return "There is no player by that ID", 404
-
-    return jsonify(player), 200
-
-@app.route('/api/getPlayers', methods=['GET'])
+@app.route('/api/players', methods=['GET'])
 def get_players():
     players = Player.objects()
     if not players:
@@ -67,10 +73,23 @@ def get_players():
 
     return jsonify(players), 200
 
-"""@app.route('/api/getFirstActiveBoard', methods=['GET', 'POST']) # if GET, you have HEAD and OPTIONS supported by Flask
-def getFirstActiveBoard():
-    if request.method == 'POST':
-        return "<p>POST - Utahraptors are OP</p>"
-    else:
-        return "<p>GET - Rexes are OP</p>"
-"""
+@app.route('/api/players', methods=['POST'])
+def create_player():
+    try:
+        data = request.get_json()
+        player = Player(**data)
+        player.save()
+    except ValidationError:
+        return "Validation error thrown, please check your posted body for errors", 400
+    except FieldDoesNotExist:
+        return "Field does not exist error thrown, please check your posted body for errors", 400
+    
+    return "Player created", 204
+
+@app.route('/api/players/<player_id>', methods=['GET'])
+def get_player(player_id: int):
+    player = Player.objects(player_id=player_id)
+    if not player:
+        return "There is no player by that ID", 404
+
+    return jsonify(player), 200

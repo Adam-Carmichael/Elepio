@@ -9,7 +9,7 @@ class Board(ME.Document):
     player_count = ME.IntField(default=0)
     player_max = ME.IntField(default=100)
     width = ME.IntField(default=1000, min_value=1000, max_value=20000)
-    meta = {'collection': 'elepioApp_board'}
+    meta = {'collection': 'board'}
 
 # The player class, used for keeping track of player location and board player is associated with
 class Player(ME.Document):
@@ -21,4 +21,4 @@ class Player(ME.Document):
     pos_y = ME.IntField(default=0)
     radius = ME.IntField(default=5)
     type = ME.StringField(default='circle', max_length=50)
-    meta = {'collection': 'elepioApp_player'}
+    meta = {'collection': 'player'}

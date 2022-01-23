@@ -37,7 +37,7 @@ def get_boards():
 
     return jsonify(boards), 200
 
-@app.route('/api/boards', methods=['POST'])
+@app.route('/api/boards', methods=['POST', 'PATCH'])
 def create_board():
     try:
         data = request.get_json()
@@ -50,13 +50,32 @@ def create_board():
     
     return "Board created", 204
 
-@app.route('/api/boards/<board_id>', methods=['GET'])
-def get_board(board_id: int):
-    board = Board.objects(board_id=board_id)
-    if not board:
-        return "There is no board by that ID", 404
+@app.route('/api/boards/<board_id>', methods=['GET', 'PATCH', 'DELETE'])
+def get_patch_delete_board(board_id: str):
+    if request.method == 'GET':
+        board = Board.objects(pk=board_id)
+        if not board:
+            return "There is no board by that ID", 404
+        return jsonify(board), 200
 
-    return jsonify(board), 200
+    if request.method == 'PATCH':
+        try: 
+            data = request.get_json()
+            board = Board.objects(pk=board_id)
+            board.update(**data)
+            return "Board updated", 204
+        except ValidationError:
+            return "Validation error thrown, please check your posted body for errors", 400
+        except FieldDoesNotExist:
+            return "Field does not exist error thrown, please check your posted body for errors", 400
+
+    if request.method == 'DELETE':
+        board = Board.objects(pk=board_id)
+        if not board:
+            return "There is no board by that ID", 404
+        board.delete()
+        return "Board successfully deleted", 200
+
 
 
 ######################################
@@ -86,10 +105,28 @@ def create_player():
     
     return "Player created", 204
 
-@app.route('/api/players/<player_id>', methods=['GET'])
-def get_player(player_id: int):
-    player = Player.objects(player_id=player_id)
-    if not player:
-        return "There is no player by that ID", 404
+@app.route('/api/players/<player_id>', methods=['GET', 'PATCH', 'DELETE'])
+def get_patch_delete_player(player_id: str):
+    if request.method == 'GET':
+        player = Player.objects(pk=player_id)
+        if not player:
+            return "There is no player by that ID", 404
+        return jsonify(player), 200
 
-    return jsonify(player), 200
+    if request.method == 'PATCH':
+        try: 
+            data = request.get_json()
+            player = Player.objects(pk=player_id)
+            player.update(**data)
+            return "Player updated", 204
+        except ValidationError:
+            return "Validation error thrown, please check your posted body for errors", 400
+        except FieldDoesNotExist:
+            return "Field does not exist error thrown, please check your posted body for errors", 400
+
+    if request.method == 'DELETE':
+        player = Player.objects(pk=player_id)
+        if not player:
+            return "There is no player by that ID", 404
+        player.delete()
+        return "Player successfully deleted", 200

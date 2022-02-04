@@ -1,0 +1,8 @@
+{
+    "env":{
+        "name":"DEV"
+    },
+    "elepioAPI": "http://167.172.246.162:8080/api",
+    "apiInterval": 100,
+    "eatingIncSizeBy": 2
+}

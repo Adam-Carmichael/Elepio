@@ -1,0 +1,8 @@
+{
+    "env":{
+        "name":"#{envName}"
+    },
+    "elepioAPI": "#{apiServerEndpoint}",
+    "apiInterval": 100,
+    "eatingIncSizeBy": 2
+}

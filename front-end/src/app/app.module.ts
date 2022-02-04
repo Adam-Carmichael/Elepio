@@ -7,6 +7,13 @@ import { AppComponent } from './app.component';
 import { GameSpaceComponent } from './components/game-space/game-space.component';
 import { GameService } from './services/game/game.service';
 
+import { APP_INITIALIZER } from '@angular/core';
+import { AppConfigService } from './services/app-config/app-config.service';
+
+export function initializeApp(appConfig:AppConfigService){
+  return () => appConfig.load();
+}
+
 @NgModule({
   imports: [
     BrowserModule,
@@ -17,7 +24,15 @@ import { GameService } from './services/game/game.service';
     AppComponent,
     GameSpaceComponent
   ],
-  providers: [GameService],
+  providers: [/*
+    AppConfigService, 
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      deps: [AppConfigService],
+      multi: true
+    },*/
+    GameService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

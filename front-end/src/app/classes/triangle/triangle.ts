@@ -1,8 +1,13 @@
 import { Shape } from "../shape/shape";
-import { IShape } from "src/app/interfaces/interfaces";
+import { TrianglePlayer } from "src/app/interfaces/interfaces";
+import { CanvasService } from "src/app/services/canvas/canvas.service";
 
 export class Triangle extends Shape {
-    constructor(playerObj: IShape) {
-        super("triangle", playerObj.color);
+    constructor(playerObj: TrianglePlayer, canvasAPI: CanvasService) {
+        super("triangle", playerObj.color,canvasAPI);
+    }
+    public draw(){
+        this.p5.color(this.getColor());
+
     }
 }

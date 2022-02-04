@@ -5,163 +5,231 @@ import { Square } from "../square/square";
 import { Circle } from "../circle/circle";
 import { Triangle } from "../triangle/triangle";
 
-import { Direction, ILocation, IShape, ICircle, ISquare, ITriangle, IPlayer } from "src/app/interfaces/interfaces";
+import { ShapePlayer, SquarePlayer, TrianglePlayer, CircleObject } from "src/app/interfaces/interfaces";
 
 import { CanvasService } from "src/app/services/canvas/canvas.service";
 
+import { interval, Subscription } from "rxjs";
+import { takeWhile } from "rxjs/operators";
+import { GameService } from "src/app/services/game/game.service";
+import { Board } from "../board/board";
+
+import { environment } from "src/environments/environment";
+
 export class Player {
-    private alive:boolean = true;
-    private p5: p5;
-    private pos: p5.Vector;
-    private player_object: Shape;
+    private alive: boolean = true;
+    private player_object: Shape | null;
+    private bullet_size: number = 10;
+    private id: number;
 
     private currentPlayer: boolean = false;
+    private projectiles: Array<Circle> = [];
 
-    constructor(player: IPlayer, private canvasAPI: CanvasService) {
-        this.p5 = canvasAPI.getP5();
-        this.pos = this.p5.createVector(player.player_object.pos_x, player.player_object.pos_y);
-        this.player_object = this.createShapeObj(player.player_object);
+    private updateInterval: number = environment.apiInterval;
+
+    constructor(id: number, player: ShapePlayer, private canvasAPI: CanvasService, private gameAPI: GameService) {
+        this.player_object = this.createShapeObj(player);
+        this.id = id;
+    }
+    public getID() {
+        return this.id;
+    }
+    public setAsCurrentPlayer() {
+        this.currentPlayer = true;
+        console.log("Setting as current player");
+
+        var test = interval(this.updateInterval).pipe(takeWhile(() => true)).subscribe(
+            () => {
+                if (this.player_object) {
+                    //console.log("PLAYER POSTIION",this.getPlayerObject()?.getVector());
+                    this.gameAPI.updatePlayerLocation(this.id, {
+                        pos_x: Math.floor(this.player_object.getPosX() || 0),
+                        pos_y: Math.floor(this.player_object.getPosY() || 0),
+                    })?.subscribe((response) => {
+                        //console.log("updated player response:",response);
+                        //console.log(this.player_object?.getPosX(),this.player_object?.getPosY());
+                        //console.log("updatedpLayerposition",response);
+                    });
+                }
+            }
+        );
     }
 
-    public getPlayerObject(){
+    public getPlayerObject() {
         return this.player_object;
     }
 
-    public createShapeObj(playerObj: IShape) {
-        var shapeObj: Shape;
+    public createShapeObj(playerObj: ShapePlayer) {
+        var shapeObj: Shape | null = null;
         switch (playerObj.type) {
             case "circle":
-                shapeObj = new Circle(<ICircle>playerObj);
+                shapeObj = new Circle(<CircleObject>playerObj, this.canvasAPI);
                 break;
             case "square":
-                shapeObj = new Square(<ISquare>playerObj);
+                shapeObj = new Square(<SquarePlayer>playerObj, this.canvasAPI);
                 break;
             case "triangle":
-                shapeObj = new Triangle(<ITriangle>playerObj);
+                shapeObj = new Triangle(<TrianglePlayer>playerObj, this.canvasAPI);
                 break;
             default:
-                shapeObj = new Circle(<ICircle>playerObj);
                 console.error("Invalid Shape", playerObj.type);
         }
         return shapeObj;
     }
 
     public getVector() {
-        return this.pos;
+        if (!this.player_object) {
+            return;
+        }
+        return this.player_object.getVector();
     }
 
     public getPosX() {
-        return this.pos.x;
+        if (!this.player_object) {
+            return;
+        }
+        return this.player_object.getPosX();
     }
     public getPosY() {
-        return this.pos.y;
+        if (!this.player_object) {
+            return;
+        }
+        return this.player_object.getPosY();
     }
 
-    public isAlive(){
+    public getProjectiles() {
+        return this.projectiles;
+    }
+
+    public isAlive() {
         return this.alive;
     }
-    
-    public died(){
+
+    public died() {
         this.alive = false;
-        console.log("DEAD PLAYER - Coordinates:",this.pos)
+        console.log("DEAD PLAYER - Coordinates:", this.getVector())
     }
 
+
     public draw() {
-        if(!this.alive){
+        //Draw if Player is alive and has an object associated to them
+        if (!this.alive || !this.player_object) {
+            console.log("PLAYER DOESNT EXIST OR IS DEAD");
             return;
         }
 
-        this.p5.fill(this.p5.color(this.player_object.getColor()));
-        if (this.player_object instanceof Square) {
-            this.p5.square(this.pos.x, this.pos.y, this.player_object.getWidth());
-        }
-        else if (this.player_object instanceof Circle) {
-            this.p5.circle(this.pos.x, this.pos.y, (this.player_object.getRadius() * 2));
-            this.p5.fill(this.p5.color(255, 0, 0));
-            this.p5.circle(this.pos.x, this.pos.y, 1);
-        }
-        else if (this.player_object instanceof Triangle) {
-            //p.triangle(x1, y1, x2, y2, x3, y3);
-            console.error("Triangle Object Not Yet Supported");
-        }
+        this.player_object.draw();
         return;
     }
 
-    public updatePlayer(action: Direction) {
-        switch (action) {
-            case Direction.up:
-                this.pos.y = this.pos.y - 20;
-                break;
-            case Direction.down:
-                this.pos.y = this.pos.y + 20;
-                break;
-            case Direction.right:
-                this.pos.x = this.pos.x + 20;
-                break;
-            case Direction.left:
-                this.pos.x = this.pos.x - 20;
-                break;
-            default:
+    public launchProjectile(velocity: p5.Vector) {
+        if (!this.alive || !this.player_object) {
+            return;
         }
+
+        var pos_x = this.getPosX();
+        var pos_y = this.getPosY();
+
+        if (!pos_x || !pos_y) {
+            return;
+        }
+
+        var info: CircleObject = {
+            "type": "circle",
+            "color": "#aaa",
+            "pos_x": pos_x,
+            "pos_y": pos_y,
+            "radius": this.bullet_size
+        };
+
+        var projectile = new Circle(info, this.canvasAPI);
+        
     }
 
-    public updatePlayerPosition(velocity: p5.Vector) {
-        if(!this.alive){
+    public updatePlayerPosition(board: Board, velocity: p5.Vector) {
+        if (!this.alive || !this.player_object) {
             return;
         }
 
         velocity.setMag(3);
-        this.pos.add(velocity);
+        let vector = this.player_object.getVector();
+        var newVector = vector.add(velocity);
+
+        if (!this.withinBoard(board, newVector)) {
+            vector.sub(velocity);
+            this.player_object.setVector(vector);
+            return;
+        }
+
+        this.player_object.setVector(newVector);
+        return;
     }
 
-    public eatsPlayer(enemyPlayer: Player){
-        if(!this.alive || !enemyPlayer.isAlive()){
+    public withinBoard(board: Board, vector: p5.Vector) {
+        let inHorizontal = vector.x <= board.getWidth() && vector.x >= 0;
+        let inVertical = vector.y <= board.getHeight() && vector.y >= 0;
+        return inHorizontal && inVertical;
+    }
+
+    public eatsPlayer(enemyPlayer: Player) {
+        if (!this.alive || !enemyPlayer.isAlive()) {
             return false;
         }
-        
+
         var inEnemySpace = false;
 
         var enemyPlayerObject = enemyPlayer.getPlayerObject();
-        if(this.player_object instanceof Circle && enemyPlayerObject instanceof Circle){
-        
+        if (this.player_object instanceof Circle && enemyPlayerObject instanceof Circle) {
+
             var currentPlayerRadius = this.player_object.getRadius();
             var enemyPlayerRadius = enemyPlayerObject.getRadius();
-            
-            var currentPlayerSA = Math.PI * Math.pow(currentPlayerRadius,2);
-            var enemyPlayerSA = Math.PI * Math.pow(enemyPlayerRadius,2);
+
+            var currentPlayerSA = Math.PI * Math.pow(currentPlayerRadius, 2);
+            var enemyPlayerSA = Math.PI * Math.pow(enemyPlayerRadius, 2);
 
             //Current Player has to be bigger than the enemy player
-            if(enemyPlayerSA >= currentPlayerSA){
+            if (enemyPlayerSA >= currentPlayerSA) {
                 return false;
             }
-            
-            var xDelta = Math.pow((enemyPlayer.getPosX() - this.pos.x),2);
-            var yDelta = Math.pow((enemyPlayer.getPosY() - this.pos.y),2);
-            var distance = Math.sqrt(xDelta + yDelta);
 
-            inEnemySpace = this.player_object.getRadius() >= distance;
-            if(inEnemySpace){
-                this.player_object.incrementRadius(4);
+            var ep_pos_x = enemyPlayer.getPosX();
+            var ep_pos_y = enemyPlayer.getPosY();
+
+            var pos_x = this.getPosX();
+            var pos_y = this.getPosY();
+
+            if (ep_pos_x && ep_pos_y && pos_x && pos_y) {
+
+                var xDelta = Math.pow((ep_pos_x - pos_x), 2);
+                var yDelta = Math.pow((ep_pos_y - pos_y), 2);
+                var distance = Math.sqrt(xDelta + yDelta);
+
+                inEnemySpace = this.player_object.getRadius() >= distance;
+                if (inEnemySpace) {
+                    this.player_object.incrementRadius(4);
+                }
             }
         }
 
         return inEnemySpace;
     }
 
-
-
     public intersectsPlayer(enemyPlayer: Player) {
-        if(!this.alive || !enemyPlayer.isAlive()){
+        if (!this.alive || !enemyPlayer.isAlive() || !this.player_object) {
             return false;
         }
 
-        var d = this.pos.dist(enemyPlayer.getVector());
-        if (this.player_object instanceof Circle &&
-            enemyPlayer.player_object instanceof Circle &&
-            d < (this.player_object.getRadius() + enemyPlayer.player_object.getRadius())
-        ) {
-            return true;
+        var e_vector = enemyPlayer.getVector();
+        if (e_vector) {
+            var d = this.player_object.getVector().dist(e_vector);
+            if (this.player_object instanceof Circle &&
+                enemyPlayer.player_object instanceof Circle &&
+                d < (this.player_object.getRadius() + enemyPlayer.player_object.getRadius())
+            ) {
+                return true;
+            }
         }
+
         return false;
     }
 

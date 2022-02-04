@@ -14,6 +14,7 @@ export class CanvasService {
       p.draw = () => { }
     });
   }
+  
   public getP5() {
     return this.p5;
   }

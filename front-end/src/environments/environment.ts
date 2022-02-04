@@ -3,7 +3,11 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  name: "dev",
+
+  elepioAPI: "http://167.172.246.162:8080/api",
+  apiInterval: 200
 };
 
 /*

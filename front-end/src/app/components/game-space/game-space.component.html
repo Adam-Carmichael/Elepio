@@ -2,6 +2,15 @@
     <div class="row">
         <div class="col">
             <h1>Welcome to Elepio!</h1>
+            <p>
+                Board ID: {{this.game.getBoard().getID()}}
+                <br>
+                Board Width: {{this.game.getBoard().getWidth()}}
+                <br>
+                Board Height: {{this.game.getBoard().getHeight()}}
+
+            </p>
+            <p>Player Count: {{this.game.getBoard().getPlayerCount()}}</p>
         </div>
     </div>
     <div class="row">
@@ -9,5 +18,8 @@
             <div id="game-space-container"></div>
         </div>
     </div>
-    <button (click)="test()">test</button>
+    <button (click)="createNewPlayer()">Create New Player</button>
+    <button (click)="logCurrentPlayer()">Log Current Player</button>
+    <button (click)="logAllPlayers()">Log All Players</button>
+    <button (click)="killAllPlayers()">Kill All Players</button>
 </div>

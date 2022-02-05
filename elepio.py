@@ -130,3 +130,26 @@ def get_patch_delete_player(player_id: str):
             return "There is no player by that ID", 404
         player.delete()
         return "Player successfully deleted", 200
+
+
+
+#####################################
+###
+###  Unique operations (Non-CRUD) ###
+###
+#####################################
+
+@app.route('/api/board', methods=['GET'])
+def get_board():
+    boards = Board.objects(active=True).first()
+    if not boards:
+        return "There are no boards", 404
+
+    return jsonify(boards), 200
+
+@app.route('/api/board/<board_id>/players', methods=['GET'])
+def get_board_players(board_id: str):
+    players = Player.objects(board_id=board_id)
+    if not players:
+        return "There are no players associated with that board ID", 404
+    return jsonify(players), 200

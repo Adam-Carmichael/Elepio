@@ -1,7 +1,6 @@
 # app.py
 
 from flask import Flask
-from flask_restplus import Api
 from flask_mongoengine import MongoEngine
 from flask import request
 from flask import jsonify
@@ -16,7 +15,6 @@ app.config['MONGODB_SETTINGS'] = {
     'host': 'mongodb+srv://elepio_admin:GMpblUA898oclres@cluster0.02gp5.mongodb.net/Elepio?retryWrites=true&w=majority'
 }
 #app.config.from_pyfile('config.cfg')
-#api = Api(app)
 db = MongoEngine(app)
 
 #@app.route('/') # the route decorator which specifies what URL triggers the following function(s)

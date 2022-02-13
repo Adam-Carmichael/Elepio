@@ -18,7 +18,7 @@ app.config['MONGODB_SETTINGS'] = {
 }
 #app.config.from_pyfile('config.cfg')
 db = MongoEngine(app)
-cors = CORS(app)
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 #@app.route('/') # the route decorator which specifies what URL triggers the following function(s)
@@ -205,5 +205,5 @@ def format_response(someObj):
         formattedObj = Response(someObj)
     else:
         formattedObj = jsonify(someObj)
-    #formattedObj.headers.add('Access-Control-Allow-Origin', '*')
+    formattedObj.headers.add('Access-Control-Allow-Origin', '*')
     return formattedObj

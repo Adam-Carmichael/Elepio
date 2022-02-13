@@ -1,9 +1,12 @@
 # app.py
 
-from flask import Flask
+from ast import Or
+from flask import Flask, Response
 from flask_mongoengine import MongoEngine
 from flask import request
 from flask import jsonify
+
+from flask_cors import CORS, cross_origin
 
 from mongoengine.errors import FieldDoesNotExist, ValidationError
 
@@ -16,6 +19,7 @@ app.config['MONGODB_SETTINGS'] = {
 }
 #app.config.from_pyfile('config.cfg')
 db = MongoEngine(app)
+CORS(app)
 
 #@app.route('/') # the route decorator which specifies what URL triggers the following function(s)
 #def elepio_doc():
@@ -35,7 +39,8 @@ def get_boards():
     if not boards:
         return "There are no boards", 404
 
-    return jsonify(boards), 200
+    response = format_response(boards)
+    return response, 200
 
 @app.route('/api/boards', methods=['POST', 'PATCH'])
 def create_board():
@@ -44,37 +49,47 @@ def create_board():
         board = Board(**data)
         board.save()
     except ValidationError:
-        return "Validation error thrown, please check your posted body for errors", 400
+        response = format_response("Validation error thrown, please check your posted body for errors")
+        return response, 400
     except FieldDoesNotExist:
-        return "Field does not exist error thrown, please check your posted body for errors", 400
+        response = format_response("Field does not exist error thrown, please check your posted body for errors")
+        return response, 400
     
-    return "Board created", 204
+    response = format_response("Board Created")
+    return response, 204
 
 @app.route('/api/boards/<board_id>', methods=['GET', 'PATCH', 'DELETE'])
 def get_patch_delete_board(board_id: str):
     if request.method == 'GET':
         board = Board.objects(pk=board_id)
         if not board:
-            return "There is no board by that ID", 404
-        return jsonify(board), 200
+            response = format_response("There is no board by that ID")
+            return response, 404
+        response = format_response(board)
+        return response, 200
 
     if request.method == 'PATCH':
         try: 
             data = request.get_json()
             board = Board.objects(pk=board_id)
             board.update(**data)
-            return "Board updated", 204
+            response = format_response("Board updated")
+            return response, 204
         except ValidationError:
-            return "Validation error thrown, please check your posted body for errors", 400
+            response = format_response("Validation error thrown, please check your posted body for errors")
+            return response, 400
         except FieldDoesNotExist:
-            return "Field does not exist error thrown, please check your posted body for errors", 400
+            response = format_response("Field does not exist error thrown, please check your posted body for errors")
+            return response, 400
 
     if request.method == 'DELETE':
         board = Board.objects(pk=board_id)
         if not board:
-            return "There is no board by that ID", 404
+            response = format_response("There is no board by that ID")
+            return response, 404
         board.delete()
-        return "Board successfully deleted", 200
+        response = format_response("Board successfully deleted")
+        return response, 200
 
 
 
@@ -88,9 +103,11 @@ def get_patch_delete_board(board_id: str):
 def get_players():
     players = Player.objects()
     if not players:
-        return "There are no players", 404
+        response = format_response("There are no players")
+        return response, 404
 
-    return jsonify(players), 200
+    response = format_response(players)
+    return response, 200
 
 @app.route('/api/players', methods=['POST'])
 def create_player():
@@ -99,37 +116,47 @@ def create_player():
         player = Player(**data)
         player.save()
     except ValidationError:
-        return "Validation error thrown, please check your posted body for errors", 400
+        response = format_response("Validation error thrown, please check your posted body for errors")
+        return response, 400
     except FieldDoesNotExist:
-        return "Field does not exist error thrown, please check your posted body for errors", 400
+        response = format_response("Field does not exist error thrown, please check your posted body for errors")
+        return response, 400
     
-    return "Player created", 204
+    response = format_response("Player created")
+    return response, 204
 
 @app.route('/api/players/<player_id>', methods=['GET', 'PATCH', 'DELETE'])
 def get_patch_delete_player(player_id: str):
     if request.method == 'GET':
         player = Player.objects(pk=player_id)
         if not player:
-            return "There is no player by that ID", 404
-        return jsonify(player), 200
+            response = format_response("There is no player by that ID")
+            return response, 404
+        response = format_response(player)
+        return response, 200
 
     if request.method == 'PATCH':
         try: 
             data = request.get_json()
             player = Player.objects(pk=player_id)
             player.update(**data)
-            return "Player updated", 204
+            response = format_response("Player updated")
+            return response, 204
         except ValidationError:
-            return "Validation error thrown, please check your posted body for errors", 400
+            response = format_response("Validation error thrown, please check your posted body for errors")
+            return response, 400
         except FieldDoesNotExist:
-            return "Field does not exist error thrown, please check your posted body for errors", 400
+            response = format_response("Field does not exist error thrown, please check your posted body for errors")
+            return response, 400
 
     if request.method == 'DELETE':
         player = Player.objects(pk=player_id)
         if not player:
-            return "There is no player by that ID", 404
+            response = format_response("There is no player by that ID")
+            return response, 404
         player.delete()
-        return "Player successfully deleted", 200
+        response = format_response("Player successfully deleted")
+        return response, 200
 
 
 
@@ -143,13 +170,32 @@ def get_patch_delete_player(player_id: str):
 def get_board():
     boards = Board.objects(active=True).first()
     if not boards:
-        return "There are no boards", 404
+        response = format_response("There are no boards")
+        return response, 404
 
-    return jsonify(boards), 200
+    response = format_response(boards)
+    return response, 200
 
 @app.route('/api/board/<board_id>/players', methods=['GET'])
 def get_board_players(board_id: str):
     players = Player.objects(board_id=board_id)
     if not players:
-        return "There are no players associated with that board ID", 404
-    return jsonify(players), 200
+        response = format_response("There are no players associated with that board ID")
+        return response, 404
+    response = format_response(players)
+    return response, 200
+
+
+#######################
+###
+###  Helper Methods ###
+###
+#######################
+
+def format_response(someObj):
+    if (isinstance(someObj, str)):
+        formattedObj = Response(someObj)
+    else:
+        formattedObj = jsonify(someObj)
+    formattedObj.headers.add('Access-Control-Allow-Origin', '*')
+    return formattedObj

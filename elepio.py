@@ -2,11 +2,10 @@
 
 from ast import Or
 from flask import Flask, Response
+from flask_cors import CORS, cross_origin
 from flask_mongoengine import MongoEngine
 from flask import request
 from flask import jsonify
-
-from flask_cors import CORS, cross_origin
 
 from mongoengine.errors import FieldDoesNotExist, ValidationError
 
@@ -19,7 +18,8 @@ app.config['MONGODB_SETTINGS'] = {
 }
 #app.config.from_pyfile('config.cfg')
 db = MongoEngine(app)
-CORS(app)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 #@app.route('/') # the route decorator which specifies what URL triggers the following function(s)
 #def elepio_doc():
@@ -34,6 +34,7 @@ CORS(app)
 #####################################
 
 @app.route('/api/boards', methods=['GET'])
+@cross_origin()
 def get_boards():
     boards = Board.objects()
     if not boards:
@@ -43,6 +44,7 @@ def get_boards():
     return response, 200
 
 @app.route('/api/boards', methods=['POST', 'PATCH'])
+@cross_origin()
 def create_board():
     try:
         data = request.get_json()
@@ -59,6 +61,7 @@ def create_board():
     return response, 204
 
 @app.route('/api/boards/<board_id>', methods=['GET', 'PATCH', 'DELETE'])
+@cross_origin()
 def get_patch_delete_board(board_id: str):
     if request.method == 'GET':
         board = Board.objects(pk=board_id)
@@ -100,6 +103,7 @@ def get_patch_delete_board(board_id: str):
 ######################################
 
 @app.route('/api/players', methods=['GET'])
+@cross_origin()
 def get_players():
     players = Player.objects()
     if not players:
@@ -110,6 +114,7 @@ def get_players():
     return response, 200
 
 @app.route('/api/players', methods=['POST'])
+@cross_origin()
 def create_player():
     try:
         data = request.get_json()
@@ -126,6 +131,7 @@ def create_player():
     return response, 204
 
 @app.route('/api/players/<player_id>', methods=['GET', 'PATCH', 'DELETE'])
+@cross_origin()
 def get_patch_delete_player(player_id: str):
     if request.method == 'GET':
         player = Player.objects(pk=player_id)
@@ -167,6 +173,7 @@ def get_patch_delete_player(player_id: str):
 #####################################
 
 @app.route('/api/board', methods=['GET'])
+@cross_origin()
 def get_board():
     boards = Board.objects(active=True).first()
     if not boards:
@@ -177,6 +184,7 @@ def get_board():
     return response, 200
 
 @app.route('/api/board/<board_id>/players', methods=['GET'])
+@cross_origin()
 def get_board_players(board_id: str):
     players = Player.objects(board_id=board_id)
     if not players:

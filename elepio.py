@@ -205,5 +205,5 @@ def format_response(someObj):
         formattedObj = Response(someObj)
     else:
         formattedObj = jsonify(someObj)
-    formattedObj.headers.add('Access-Control-Allow-Origin', '*')
+    #formattedObj.headers.add('Access-Control-Allow-Origin', '*')
     return formattedObj

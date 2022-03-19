@@ -188,8 +188,6 @@ def get_board():
 def get_board_players(board_id: str):
     players = Player.objects(board_id=board_id)
     response = format_response(players)
-    if not players:
-        return response, 404
     return response, 200
 
 

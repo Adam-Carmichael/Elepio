@@ -57,8 +57,8 @@ def create_board():
         response = format_response("Field does not exist error thrown, please check your posted body for errors")
         return response, 400
     
-    response = format_response("Board Created")
-    return response, 204
+    response = format_response(board)
+    return response, 200
 
 @app.route('/api/boards/<board_id>', methods=['GET', 'PATCH', 'DELETE'])
 @cross_origin()
@@ -187,10 +187,9 @@ def get_board():
 @cross_origin()
 def get_board_players(board_id: str):
     players = Player.objects(board_id=board_id)
-    if not players:
-        response = format_response("There are no players associated with that board ID")
-        return response, 404
     response = format_response(players)
+    if not players:
+        return response, 404
     return response, 200
 
 

@@ -127,8 +127,8 @@ def create_player():
         response = format_response("Field does not exist error thrown, please check your posted body for errors")
         return response, 400
     
-    response = format_response("Player created")
-    return response, 204
+    response = format_response(player)
+    return response, 200
 
 @app.route('/api/players/<player_id>', methods=['GET', 'PATCH', 'DELETE'])
 @cross_origin()

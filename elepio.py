@@ -1,11 +1,12 @@
 # app.py
 
-from ast import Or
-from flask import Flask, Response
-from flask_cors import CORS, cross_origin
-from flask_mongoengine import MongoEngine
+from flask import Flask, Response, render_template
 from flask import request
 from flask import jsonify
+
+from flask_cors import CORS, cross_origin
+from flask_mongoengine import MongoEngine
+from flask_socketio import SocketIO
 
 from mongoengine.errors import FieldDoesNotExist, ValidationError
 
@@ -16,8 +17,11 @@ app = Flask(__name__)
 app.config['MONGODB_SETTINGS'] = {
     'host': 'mongodb+srv://elepio_admin:GMpblUA898oclres@cluster0.02gp5.mongodb.net/Elepio?retryWrites=true&w=majority'
 }
+
 #app.config.from_pyfile('config.cfg')
 db = MongoEngine(app)
+socketio = SocketIO(app)
+
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
@@ -185,6 +189,7 @@ def get_board():
 
 @app.route('/api/board/<board_id>/players', methods=['GET'])
 @cross_origin()
+@socketio.event
 def get_board_players(board_id: str):
     players = Player.objects(board_id=board_id)
     response = format_response(players)

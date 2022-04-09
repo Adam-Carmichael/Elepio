@@ -6,7 +6,7 @@ from flask import jsonify
 
 from flask_cors import CORS, cross_origin
 from flask_mongoengine import MongoEngine
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 
 from mongoengine.errors import FieldDoesNotExist, ValidationError
 
@@ -21,6 +21,9 @@ app.config['MONGODB_SETTINGS'] = {
 #app.config.from_pyfile('config.cfg')
 db = MongoEngine(app)
 socketio = SocketIO(app)
+
+if __name__ == '__main__':
+    socketio.run(app)
 
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -189,11 +192,27 @@ def get_board():
 
 @app.route('/api/board/<board_id>/players', methods=['GET'])
 @cross_origin()
-@socketio.event
+#@socketio.event
 def get_board_players(board_id: str):
     players = Player.objects(board_id=board_id)
     response = format_response(players)
     return response, 200
+
+# Temporary route for testing web socket connection
+@app.route('/api/message', methods=['POST'])
+@cross_origin()
+def message():
+    return render_template('message.html')
+
+@socketio.on('connect')
+def test_connect():
+    emit('after connect', {'data':'test'})
+
+@cross_origin()
+@socketio.event()
+def get_message(msg):
+    emit('test', {'data': 'test'})
+
 
 
 #######################

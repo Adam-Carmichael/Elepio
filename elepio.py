@@ -1,4 +1,5 @@
 # app.py
+import json
 
 from flask import Flask, Response, render_template
 from flask import request
@@ -37,6 +38,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 ###
 #####################################
 
+# Returns all boards
 @app.route('/api/boards', methods=['GET'])
 @cross_origin()
 def get_boards():
@@ -47,6 +49,7 @@ def get_boards():
     response = format_response(boards)
     return response, 200
 
+# Create/update a board
 @app.route('/api/boards', methods=['POST', 'PATCH'])
 @cross_origin()
 def create_board():
@@ -64,6 +67,7 @@ def create_board():
     response = format_response(board)
     return response, 200
 
+# Return, update, or delete a specific board
 @app.route('/api/boards/<board_id>', methods=['GET', 'PATCH', 'DELETE'])
 @cross_origin()
 def get_patch_delete_board(board_id: str):
@@ -106,6 +110,7 @@ def get_patch_delete_board(board_id: str):
 ###
 ######################################
 
+# Returns all players
 @app.route('/api/players', methods=['GET'])
 @cross_origin()
 def get_players():
@@ -117,6 +122,7 @@ def get_players():
     response = format_response(players)
     return response, 200
 
+# Create a player
 @app.route('/api/players', methods=['POST'])
 @cross_origin()
 def create_player():
@@ -134,6 +140,7 @@ def create_player():
     response = format_response(player)
     return response, 200
 
+# Return, update, or delete a player
 @app.route('/api/players/<player_id>', methods=['GET', 'PATCH', 'DELETE'])
 @cross_origin()
 def get_patch_delete_player(player_id: str):
@@ -176,6 +183,7 @@ def get_patch_delete_player(player_id: str):
 ###
 #####################################
 
+# Return first active board
 @app.route('/api/board', methods=['GET'])
 @cross_origin()
 def get_board():
@@ -187,20 +195,24 @@ def get_board():
     response = format_response(boards)
     return response, 200
 
+# Return all players associated with a given board
 @app.route('/api/board/<board_id>/players', methods=['GET'])
 @cross_origin()
-#@socketio.event
 def get_board_players(board_id: str):
     players = Player.objects(board_id=board_id)
     response = format_response(players)
     return response, 200
 
-# Temporary route for testing web socket connection
-@sock.route('/api/echo')
-def echo(ws):
+# Websocket protocol: return all players associated with a given board
+@sock.route('/ws/board/players')
+def ws_get_board_players(ws):
     while True:
         data = ws.receive()
-        ws.send(data)
+        players = Player.objects(board_id=data)
+        print(players)
+        response = players.to_json()
+        print(response)
+        ws.send(response)
 
 
 

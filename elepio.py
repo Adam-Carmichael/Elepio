@@ -209,10 +209,15 @@ def ws_get_board_players(ws):
     while True:
         data = ws.receive()
         players = Player.objects(board_id=data)
-        print(players)
         response = players.to_json()
-        print(response)
         ws.send(response)
+
+# Websocket protocol: return response, used for testing
+@sock.route('/ws/echo')
+def echo(ws):
+    while True:
+        data = ws.receive()
+        ws.send(data)
 
 
 
@@ -222,6 +227,7 @@ def ws_get_board_players(ws):
 ###
 #######################
 
+# For HTTP routes: format data or string
 def format_response(someObj):
     if (isinstance(someObj, str)):
         formattedObj = Response(someObj)

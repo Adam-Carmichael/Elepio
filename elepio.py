@@ -1,10 +1,9 @@
 # app.py
 import json
 
-from flask import Flask, Response, render_template
-from flask import request
-from flask import jsonify
+from flask import Flask, Response, render_template, request, jsonify
 
+from flask_expects_json import expects_json
 from flask_cors import CORS, cross_origin
 from flask_mongoengine import MongoEngine
 from flask_sock import Sock
@@ -208,15 +207,21 @@ def get_board_players(board_id: str):
 def ws_get_board_players(ws):
     while True:
         data = ws.receive()
-        players = Player.objects(board_id=data)
-        response = players.to_json()
-        ws.send(response)
+        data = validate_json_ws(data, ws)
+        try:
+            players = Player.objects(board_id=data['body']['id'])
+            response = players.to_json()
+            ws.send(response)
+        except ValidationError:
+            response = "Validation error thrown, please check the sent data for errors"
+            ws.close(1006, response)
 
 # Websocket protocol: return response, used for testing
 @sock.route('/ws/echo')
 def echo(ws):
     while True:
         data = ws.receive()
+        data = validate_json_ws(data, ws)
         ws.send(data)
 
 
@@ -235,3 +240,12 @@ def format_response(someObj):
         formattedObj = jsonify(someObj)
     #formattedObj.headers.add('Access-Control-Allow-Origin', '*')
     return formattedObj
+
+def validate_json_ws(data, ws):
+    try:
+        data = json.loads(data)
+        if data is not None:
+            return data
+        ws.close(1003, "JSON is invalid")
+    except:
+        ws.close(1003, "Data is not JSON")

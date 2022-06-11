@@ -1,71 +1,159 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpResponse } from "@angular/common/http";
 
-import { Observable, throwError } from 'rxjs';
-import { catchError, retry } from "rxjs/operators"
-import { ILocation, BoardResponse, CreatePlayerPayload, PlayerResponse, UpdatePlayerPayload } from 'src/app/interfaces/interfaces';
+
+import { BoardResponse, CreatePlayerPayload, PlayerResponse, UpdatePlayerPayload, WebSocketPlayerMessage, WebSocketPlayersResponse, WS_Message } from 'src/app/interfaces/interfaces';
 import { Board } from 'src/app/classes/board/board';
 import { environment } from 'src/environments/environment';
 import { AppConfigService } from '../app-config/app-config.service';
 import * as Config from "src/assets/config.json";
+import { LEADING_TRIVIA_CHARS } from '@angular/compiler/src/render3/view/template';
+
+import { Observable, Observer, Subject, throwError, EMPTY } from 'rxjs';
+import { catchError, tap, switchAll, retry, map } from "rxjs/operators"
+import { webSocket, WebSocketSubject, } from "rxjs/webSocket";
+import { AnonymousSubject } from 'rxjs/internal/Subject';
+import { WebSocketService } from '../web-socket/web-socket.service';
+import { WebSocketPlayerService } from '../web-socket-player/web-socket-player.service';
+
+
+
 //const api = AppConfigService.settings.elepioAPI;
 //const api = "http://167.172.246.162:8080/api";
 
 const api = environment.elepioAPI;
-
+const playersWebSocket = environment.elepioPlayersWS;
+const playerWebSocket = environment.elepioPlayerWS;
+const echoWebSocket = environment.elepioEchoWS;
 @Injectable({
   providedIn: 'root'
 })
 export class GameService {
-  private headers: any;
-  private config: any;
+  public messages: any;
+  public oMessages: Observable<any> | null = null;
 
-  constructor(private http: HttpClient) {}
 
-  getObservableBoardInfo(newPlayer?: boolean): Observable<HttpResponse<BoardResponse>> {
-    return this.http.get<BoardResponse>(`${api}/getFirstActiveBoard`, { observe: "response" });
+  public messages2: any;
+  public oMessages2: Observable<any> | null = null;
+
+  constructor(private http: HttpClient, private ws: WebSocketService, private wsPlayers: WebSocketPlayerService) { }
+
+
+  //==============================================================//
+  //                        BOARDS API
+  //==============================================================//
+  getBoard(id: string): Observable<HttpResponse<BoardResponse>> {
+    return this.http.get<BoardResponse>(`${api}/boards/${id}`, { observe: "response" });
   };
 
-  getFirstActiveBoard(): BoardResponse | void {
-    this.http.get<BoardResponse>(`${api}/getFirstActiveBoard`, { observe: "response" }).subscribe(
-      (data: HttpResponse<BoardResponse>) => {
-        console.log(data.body);
-        return data.body;
-      },
-      (response) => { 
-        console.log("getFirstActiveBoard ERROR");
-        this.handleError(response); 
+  getBoards(): Observable<HttpResponse<Array<BoardResponse>>> {
+    return this.http.get<Array<BoardResponse>>(`${api}/boards`, { observe: "response" });
+  };
+
+
+  //==============================================================//
+  //                        PLAYERS API
+  //==============================================================//
+  getPlayer(id: string): Observable<HttpResponse<PlayerResponse>> {
+    return this.http.get<PlayerResponse>(`${api}/players/${id}`, { observe: "response" });
+  }
+  getPlayers(): Observable<HttpResponse<Array<PlayerResponse>>> {
+    return this.http.get<Array<PlayerResponse>>(`${api}/players`, { observe: "response" });
+  }
+  updatePlayer(id: string, updates: UpdatePlayerPayload): Observable<HttpResponse<PlayerResponse>> {
+    return this.http.patch<PlayerResponse>(`${api}/updatePlayer/${id}`, updates, { observe: "response" });
+  }
+  createPlayer(playerInfo: CreatePlayerPayload): Observable<HttpResponse<WebSocketPlayersResponse>> {
+    return this.http.post<WebSocketPlayersResponse>(`${api}/players`, playerInfo, { observe: "response" });
+  }
+  deletePlayer(id: string): Observable<HttpResponse<any>> {
+    return this.http.delete(`${api}/players/${id}`, { observe: "response" });
+  }
+
+
+
+  //==============================================================//
+  //                        Unique Methods
+  //==============================================================//
+  getFirstActiveBoard(): Observable<HttpResponse<BoardResponse>> {
+    return this.http.get<BoardResponse>(`${api}/board`, { observe: "response" });
+  };
+  getPlayersOnBoard(board_id: string): Observable<HttpResponse<Array<PlayerResponse>>> {
+    if (!board_id) {
+      return throwError("Invalid Board ID");
+    }
+    return this.http.get<Array<PlayerResponse>>(`${api}/board/${board_id}/players`, { observe: "response" });
+  }
+
+  //61ec86adf66fc44889b0a66e
+  //echoWebSocket
+  //playersWebSocket
+
+  //this.ws.testMethod(playersWebSocket);
+  //return;
+
+  getPlayersOnBoardWS(board_id: string): Observable<any> {
+    //Connect to Web Socket if not already connected
+    this.messages = <AnonymousSubject<any>>this.ws.connect(playersWebSocket);
+
+    //Send message with body containing the current board id
+    this.messages?.next({
+      action: "get_players",
+      body: {
+        id: board_id
       }
+    });
+
+    //Return Observable Messages
+    return this.messages?.asObservable();
+  }
+
+  updatePlayerOnBoardWS(player_id:string, data: WebSocketPlayerMessage){
+    //Connect to Web Socket if not already connected
+    this.messages2 = <AnonymousSubject<any>>this.wsPlayers.connect(playerWebSocket);
+
+    //Send message with body containing the current board id
+    this.messages2?.next({
+      action: "update_player",
+      body: data
+    });
+
+    //Return Observable Messages
+    return this.messages2?.asObservable();
+  }
+
+
+
+
+
+
+  /**
+   * var messages = this.ws.connect(playersWebSocket)?.pipe(
+      map(((response: MessageEvent) => {
+        var data = JSON.parse(response.data);
+        console.log(data);
+        return data;
+      }))
     );
-  };
+   */
 
-  getObservableFirstActiveBoard(): Observable<HttpResponse<BoardResponse>>{
-    return this.http.get<BoardResponse>(`${api}/getFirstActiveBoard`, { observe: "response" });
-  };
-
-
-  createPlayer(playerInfo: CreatePlayerPayload): Observable<HttpResponse<PlayerResponse>>{
-    return this.http.post<PlayerResponse>(`${api}/createPlayer`, playerInfo, {observe: "response"});
-  }
-
-
-  getPlayersByBoardID(boardID: number): Observable<HttpResponse<Array<PlayerResponse>>>{
-    return this.http.get<Array<PlayerResponse>>(`${api}/getPlayersByBoardID/${boardID}`, { observe: "response" });
-  }
-
-  updatePlayerLocation(playerID:number, newPos: UpdatePlayerPayload):Observable<HttpResponse<any>> {
-    return this.http.patch<any>(`${api}/updatePlayer/${playerID}`, newPos, {observe: "response"});
-  }
-
-
-  public handleError(response: HttpErrorResponse) {
-    if (response.status === 0) {
-      console.error("Error Occurred:", response.error);
+  //==============================================================//
+  //                        MISC Methods
+  //==============================================================//
+  handleError(response: HttpErrorResponse): any {
+    if (response.status >= 200 && response.status < 300) {
+      return;
     }
-    else {
-      console.error("Backend Error Occurred:", response.error);
-    }
+
+    console.error("Error Occurred:", response.error);
     return throwError(response.error);
+  }
+
+  validID(id?: string) {
+    if (!id) {
+      return false
+    }
+    return id && id.length == 24;
   }
 
 }

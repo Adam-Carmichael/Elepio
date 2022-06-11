@@ -1,74 +1,112 @@
-import { BoardResponse, CreatedPlayerResponse, CreatePlayerPayload, PlayerResponse, ShapePlayer, ShapeType } from "src/app/interfaces/interfaces";
+import { BoardResponse, CreatedPlayerResponse, CreatePlayerPayload, ShapeObject, PlayerResponse, ShapePlayer, ShapeType, WebSocketPlayersResponse, BoardPlayers, WebSocketPlayerUpdateResponse } from "src/app/interfaces/interfaces";
 import { GameService } from "src/app/services/game/game.service";
 import { CanvasService } from "src/app/services/canvas/canvas.service";
-import { Player } from "../player/player";
-import { Circle } from "../circle/circle";
 import p5 from "p5";
 
-import { interval, Subscription } from "rxjs";
+import { interval, of, pipe, Subscription } from "rxjs";
 import { takeWhile } from "rxjs/operators";
-import { environment } from "src/environments/environment";
 
+import { CirclePlayer } from "../circle/circle-player";
+
+import { environment } from "src/environments/environment";
 import config from "src/assets/config.json";
+import { Shape } from "../shape/shape";
 
 export class Board {
     private p5: p5;
 
-    private color: string = "#ddd";
+    private color: string = config.boardColor;
     private width: number = 0;
     private height: number = 0;
-    private id: number = -1;
-    private lineColor = config.BoardLineColor;
+    private id: string = "";
 
-    private currentPlayer: Player | null = null;
-    private enemyPlayers: Array<Player> = [];
+    private lineColor = config.boardLineColor;
     private zoomScale: number = config.zoomScale;
 
-    constructor(
-        private gameAPI: GameService,
-        private canvasAPI: CanvasService
-    ) {
+    private currentPlayer: ShapePlayer | null = null;
 
+    private players: BoardPlayers = {}
+    private playerUpdateInterval: any;
+
+    constructor(private gameAPI: GameService, private canvasAPI: CanvasService) {
         this.p5 = this.canvasAPI.getP5();
 
-        this.p5.setup = () => {
-            this.boardSetup();
-        };
+        this.p5.setup = this.boardSetup();
 
         //Get First Active Board Information
-        this.gameAPI.getObservableFirstActiveBoard().subscribe((success) => {
-            var boardResponse: BoardResponse = success.body || this.getDefaultBoard();
-            console.log("Board Response:", boardResponse);
+        this.gameAPI.getFirstActiveBoard().subscribe(
+            (success) => {
+                var boardResponse: BoardResponse = success.body || this.getDefaultBoard();
+                console.log("Board Response:", boardResponse);
 
-            this.color = boardResponse.bg_color;
-            this.width = boardResponse.width;
-            this.height = boardResponse.height;
-            this.id = boardResponse.id;
+                this.color = boardResponse.bg_color;
+                this.width = boardResponse.width;
+                this.height = boardResponse.height;
+                this.id = boardResponse._id.$oid;
 
-            //Players
-            var test = interval(environment.apiInterval).pipe(takeWhile(() => true)).subscribe(
-                () => {
-                    this.gameAPI.getPlayersByBoardID(this.id).subscribe((success) => {
-                        this.enemyPlayers = this.createPlayerObjects(success.body);
+                console.log("Creating current player");
+                this.createCurrentPlayer();
+
+                //Update PLayer Information
+                this.playerUpdateInterval = interval(environment.apiInterval)
+                    .subscribe(() => {
+                        this.getUpdatedPlayers();
+                        this.updateCurrentPlayer();
                     });
-                }
-            );
 
-            //Player
-            this.gameAPI.createPlayer(this.getDefaultPlayer()).subscribe((success) => {
-                var playerCreated: PlayerResponse | null = success.body;
+                this.updateP5methods();
+            },
+            (error) => {
+                this.gameAPI.handleError(error);
+            }
+        );
+    }
+
+    private createCurrentPlayer(playerInfo?: CreatePlayerPayload) {
+        playerInfo = playerInfo || this.getDefaultPlayer();
+
+
+        this.gameAPI.createPlayer(playerInfo).subscribe(
+            (success) => {
+                var playerCreated: WebSocketPlayersResponse | null = success.body;
                 if (playerCreated) {
-                    this.currentPlayer = this.createPlayerObjects([playerCreated], true)[0];
-                    console.log('CREATED NEW PLAYER', playerCreated);
+                    this.setPlayerObjects([playerCreated], true);
                 }
-            }, (error) => {
+                else {
+                    this.currentPlayer = null;
+                }
+            },
+            (error) => {
                 console.error(error);
+                this.currentPlayer = null;
             });
+    }
 
-            this.updateP5methods();
-        }, (error) => {
-            this.gameAPI.handleError(error);
-        });
+    private updateCurrentPlayer(){
+        if(this.currentPlayer && this.currentPlayer.isAlive()){
+            this.gameAPI.updatePlayerOnBoardWS(this.currentPlayer.getID(), this.currentPlayer.getData()).subscribe(
+                (success:any) =>{
+                    console.log("Update Player WS Success", success);
+                    //var playerUpdated: WebSocketPlayerUpdateResponse | null = success.body;
+                    //this.setPlayerObjects(success.body);
+                },
+                (error:any) => {
+                    console.log("Update Player WS Error", error);
+                }
+            )
+        }
+    }
+
+    private getUpdatedPlayers() {
+        this.gameAPI.getPlayersOnBoardWS(this.id)?.subscribe(
+            (success) => {
+                var response: Array<WebSocketPlayersResponse> = JSON.parse(success.data);
+                this.setPlayerObjects(response);
+            },
+            (error) => {
+                this.players = {};
+            }
+        );
     }
 
     public getID() {
@@ -80,41 +118,44 @@ export class Board {
     public getHeight() {
         return this.height;
     }
-
-    public setColor(color?: string) {
-        if (!color) {
-            return;
-        }
-        this.color = color;
+    public getZoomScale() {
+        return this.zoomScale;
     }
-    public setWidth(width?: number) {
-        if (!width) {
+    public setZoomScale(zoomScale: number) {
+        if (zoomScale < 1) {
             return;
         }
-        this.width = width;
-    }
-    public setHeight(height?: number) {
-        if (!height) {
-            return;
-        }
-        this.height = height;
+        this.zoomScale = zoomScale;
     }
 
     public getPlayerCount() {
-        var x = this.enemyPlayers.length;
-        var y = this.currentPlayer ? 1 : 0
-
-        return x + y;
+        return Object.keys(this.players).length;
     }
-    public getEnemyPlayers(){
-        return this.enemyPlayers;
+    public getEnemyPlayers() {
+        var board = this;
+        var enemyPlayers = Object.keys(board.players).map(function (key) {
+            if (board.players[key].isCurrentPlayer()) {
+                return;
+            }
+
+            return board.players[key];
+        });
+
+        return enemyPlayers;
+    }
+    public getAllPlayers() {
+        var board = this;
+        var allPlayers = Object.keys(board.players).map(function (key) {
+            return board.players[key];
+        });
+        return allPlayers;
     }
 
     private getDefaultPlayer(): CreatePlayerPayload {
         var player = {
             "color": "#f00",
             //"color": this.p5.random(["#a2d3aa", "#dda", "#ada", "#34d", "#aaa", "#09d", "#f00"]),
-            "board": this.id,
+            "board_id": this.id,
             "name": this.p5.random(["Jared", "Jade", "Luis", "Adam", "Rob", "Jack", "Jill"]) + "_" + Math.floor(Math.random() * 10),
             "pos_x": Math.floor(this.p5.random(this.width)),
             "pos_y": Math.floor(this.p5.random(this.height)),
@@ -128,7 +169,9 @@ export class Board {
 
     private getDefaultBoard(): BoardResponse {
         var board = {
-            "id": Math.floor(this.p5.random(900, 1000)),
+            "_id": {
+                "$oid": "test"
+            },
             "active": true,
             "bg_color": this.p5.random(["#a2d3aa", "#dda", "#ada", "#34d", "#aaa", "#09d", "f00"]),
             "height": Math.floor(this.p5.random(9000, 15000)),
@@ -141,26 +184,40 @@ export class Board {
         return board;
     }
 
-    private createPlayerObjects(playersJSON: Array<PlayerResponse> | null, currentPlayer?: boolean) {
+    private setPlayerObjects(playersJSON: Array<WebSocketPlayersResponse> | null, currentPlayer?: boolean) {
         if (!playersJSON || playersJSON.length < 1) {
-            return [];
+            return;
         }
-        var playersObjects: Array<Player> = [];
+
         playersJSON.forEach(player => {
-            var shapePlayer: ShapePlayer = {
+            let playerData: ShapeObject = {
+                id: player._id.$oid,
                 type: <ShapeType>player.type,
                 radius: player.radius,
                 color: player.color,
                 pos_x: player.pos_x,
                 pos_y: player.pos_y,
             }
-            let playerObject = new Player(player.id, shapePlayer, this.canvasAPI, this.gameAPI);
-            if (playersJSON.length == 1 && currentPlayer) {
-                playerObject.setAsCurrentPlayer();
+
+
+            //Update PLayer 
+            if (this.players.hasOwnProperty(playerData.id)) {
+                if(this.players[playerData.id] == this.currentPlayer){
+                    return;
+                }
+                this.players[playerData.id].updateData(playerData);
             }
-            playersObjects.push(playerObject);
+            //Create Player
+            else {
+                this.players[playerData.id] = new CirclePlayer(playerData, this.canvasAPI, this.gameAPI);
+            }
+
+            //Mark as Current Player
+            if (playersJSON.length == 1 && currentPlayer) {
+                this.players[playerData.id].setAsCurrentPlayer();
+                this.currentPlayer = this.players[playerData.id];
+            }
         });
-        return playersObjects;
     }
 
     public updateBoard(boardInfo: BoardResponse) {
@@ -180,31 +237,33 @@ export class Board {
     }
 
     public logEnemyPlayer() {
-        console.log("Enemy Players", this.enemyPlayers);
+        console.log("Enemy Players", this.getEnemyPlayers());
     }
 
     private boardSetup() {
-        if(!this.p5){
-            return;
+        return () => {
+            if (!this.p5) {
+                return;
+            }
+
+            let width = this.p5.windowWidth;
+            let height = this.p5.windowHeight;
+
+            this.p5.createCanvas(width, height);
+            this.p5.fill(this.p5.color(this.lineColor));
+
+            this.p5.line(0, 0, width, 0);
+            this.p5.line(0, 0, 0, height);
+            this.p5.line(width, 0, width, height);
+            this.p5.line(0, height, width, height);
+
+            console.log("Setup window height/width", width + "," + height);
         }
-        
-        let width = this.p5.windowWidth;
-        let height = this.p5.windowHeight;
-
-        this.p5.createCanvas(width, height);
-        this.p5.fill(this.p5.color(this.lineColor));
-
-        this.p5.line(0, 0, width, 0);
-        this.p5.line(0, 0, 0, height);
-        this.p5.line(width, 0, width, height);
-        this.p5.line(0, height, width, height);
-
-        console.log("Setup window height/width", width + "," + height);
     }
 
-    private drawGrid() {
-        let p = this.p5;
-        p.fill(p.color("#eee"));
+    public drawGrid() {
+        this.p5.fill(this.p5.color(config.boardLineColor));
+
         let canvasWidth = this.width;
         let canvasHeight = this.height;
 
@@ -212,102 +271,81 @@ export class Board {
         let interval_y = canvasHeight / 10;
 
         for (let i = 0; i < (canvasWidth); i += interval_x) {
-            p.line(i, 0, i, canvasHeight);
+            this.p5.line(i, 0, i, canvasHeight);
         }
         for (let i = 0; i < (canvasHeight); i += interval_y) {
-            p.line(0, i, canvasWidth, i);
+            this.p5.line(0, i, canvasWidth, i);
         }
     }
-    private drawHungerBar() {
-        let p = this.p5;
-        p.rect(20, 20, 500, 75);
-        p.fill(p.color("#f00"));
-        p.rect(20, 20, 100, 75);
+    public drawHungerBar() {
+        this.p5.rect(20, 20, 500, 75);
+        this.p5.fill(this.p5.color(config.hungerBarColor));
+        this.p5.rect(20, 20, 100, 75);
+    }
+
+    //Translate other elements on the board to have the player always centered
+    private translateBoard(shapeElement: Shape | null) {
+        if (!shapeElement) {
+            return;
+        }
+
+        this.p5.translate((this.p5.width / 2), (this.p5.height / 2));
+
+        this.setZoomScale(
+            this.p5.lerp(
+                this.getZoomScale(),
+                (config.playerZoomScaleEffect / shapeElement.getZoomEffectDivider()),
+                0.1
+            )
+        )
+
+        this.p5.scale(this.getZoomScale());
+        this.p5.translate(-shapeElement.getPosX(), -shapeElement.getPosY());
     }
 
     private updateP5methods() {
         var p = this.p5;
 
         p.draw = () => {
-            //Reset Background
-            p.background(p.color("#fff"));
+            if (true || p.millis() % 1000 == 0) {
 
-            //Draw Hunger Bar
-            this.drawHungerBar();
+                //Reset Background
+                p.background(p.color("#fff"));
 
-            //Update Player Position
-            if (this.currentPlayer) {
-                let velocity_x = p.mouseX - (p.width / 2);
-                let velocity_y = p.mouseY - (p.height / 2);
-                let velocity = this.p5.createVector(velocity_x, velocity_y);
-                this.currentPlayer.updatePlayerPosition(this,velocity);
+                //Draw Hunger Bar
+                this.drawHungerBar();
 
-                //Draw current player
-                var player_object = this.currentPlayer.getPlayerObject();
-
-                var cp_pos_x = this.currentPlayer.getPosX();
-                var cp_pos_y = this.currentPlayer.getPosY();
-
-                if (player_object instanceof Circle) {
-                    p.translate(p.width / 2, p.height / 2);
-                    var newZoomScale = (64 / player_object.getRadius());
-                    this.zoomScale = p.lerp(this.zoomScale, newZoomScale, 0.1)
-                    p.scale(this.zoomScale);
-
-                    if (cp_pos_x && cp_pos_y) {
-                        p.translate(-cp_pos_x, -cp_pos_y);
-                    }
-                }
-                else {
-                    if (cp_pos_x && cp_pos_y) {
-                        let translate_x = (p.width / 2) - cp_pos_x;
-                        let translate_y = (p.height / 2) - cp_pos_y;
-                        p.translate(translate_x, translate_y);
-                    }
-                }
                 //Draw grid
                 this.drawGrid();
-                this.currentPlayer.draw();
-            }
 
+                //Update Player Position
+                this.currentPlayer?.updatePosition();
 
-            //Draw enemies
-            this.enemyPlayers.forEach(enemyPlayer => {
-                enemyPlayer.draw();
-            });
+                //Translate Board to have the player centered amongst all the other elements
+                this.translateBoard(this.currentPlayer);
 
-            if (this.currentPlayer) {
+                //Draw Player
+                this.currentPlayer?.draw();
 
-                //Kill any eaten enemy players
-                for (let i = 0; i < this.enemyPlayers.length; i++) {
-                    let enemyPlayer = this.enemyPlayers[i];
-                    if (this.currentPlayer.eatsPlayer(enemyPlayer)) {
-                        enemyPlayer.died();
+                //Update enemy player "alive" status and draw if alive
+                for(let player_id in this.players){
+                    if(this.players.hasOwnProperty(player_id) && !this.players[player_id].isCurrentPlayer()){
+                        let enemyPlayer = this.players[player_id]
+                        if (this.currentPlayer?.eatsPlayer(enemyPlayer)) {
+                            enemyPlayer.setAsDead();
+                        }
+                        enemyPlayer.draw();
                     }
                 }
-            }
 
-            /*
-            //Launch projectiles
-            if (p.keyIsDown(32)) {
-                let velocity_x = p.mouseX - (p.width / 2);
-                let velocity_y = p.mouseY - (p.height / 2);
-                let velocity = this.p5.createVector(velocity_x, velocity_y);
-
-                this.currentPlayer.launchProjectile(velocity);
-            }
-            
-
-            //Draw projectiles
-            let projectiles = this.currentPlayer.getProjectiles();
-            for (let i = 0; i < projectiles.length; i++) {
-                let projectile = projectiles[i];
-                if (projectile instanceof Circle) {
-                    p.circle(projectile.getPosX(), projectile.getPosY(), (projectile.getRadius() * 2));
+                //Launch projectiles
+                if (p.keyIsDown(config.projectileButton)) {
+                    this.currentPlayer?.launchProjectile();
                 }
             }
-            */
+
         }
+
     }
 
     public test() {

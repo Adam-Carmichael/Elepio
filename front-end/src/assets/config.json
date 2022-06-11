@@ -1,5 +1,12 @@
 {
     "increaseBy": 50,
-     "zoomScale":  1,
-     "BoardLineColor":"#eee"
+    "zoomScale": 1,
+    "boardLineColor": "#eee",
+    "boardColor": "#ddd",
+    "playerMagnitude":3,
+    "playerZoomScaleEffect":64,
+    "hungerBarColor":"#f00",
+    "projectileButton":32,
+    "projectileInitMag":10,
+    "intervalTimeMS":10
 }

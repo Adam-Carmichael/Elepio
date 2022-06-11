@@ -5,9 +5,11 @@
 export const environment = {
   production: false,
   name: "dev",
-
-  elepioAPI: "http://167.172.246.162:8080/api",
-  apiInterval: 200
+  elepioEchoWS:"ws://167.172.246.162:8080/ws/echo",
+  elepioPlayersWS:"ws://167.172.246.162:8080/ws/board/players",
+  elepioPlayerWS:"ws://167.172.246.162:8080/ws/player",
+  elepioAPI: "/api",//"http://167.172.246.162:8080/api",//"http://167.172.246.162:8080/api",
+  apiInterval: 20
 };
 
 /*

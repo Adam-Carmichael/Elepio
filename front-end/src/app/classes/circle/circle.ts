@@ -1,5 +1,5 @@
 import { Shape } from "../shape/shape";
-import { CircleObject } from "src/app/interfaces/interfaces";
+import { ShapeObject } from "src/app/interfaces/interfaces";
 import { CanvasService } from "src/app/services/canvas/canvas.service";
 import p5 from "p5";
 
@@ -7,9 +7,9 @@ import p5 from "p5";
 export class Circle extends Shape {
     protected radius: number = 5;
 
-    constructor(circleObj: CircleObject, canvasAPI: CanvasService) {
+    constructor(circleObj: ShapeObject, canvasAPI: CanvasService) {
         super("circle", circleObj.color, canvasAPI);
-        this.radius = circleObj.radius;
+        this.radius = circleObj.radius ? circleObj.radius : 0;
         this.setVector(this.p5.createVector(circleObj.pos_x, circleObj.pos_y));
     }
     public getRadius() {

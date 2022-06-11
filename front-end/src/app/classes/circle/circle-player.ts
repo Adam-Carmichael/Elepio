@@ -1,24 +1,36 @@
-import { CircleObject, PlayerMethods, Player } from "src/app/interfaces/interfaces";
+import { ShapePlayer, PlayerMethods, ShapeObject, ShapeType, WebSocketPlayerMessage } from "src/app/interfaces/interfaces";
 import { CanvasService } from "src/app/services/canvas/canvas.service";
 import { Circle } from "./circle";
 import { Board } from "../board/board";
-
+import config from "src/assets/config.json";
 import p5 from "p5";
 
 import { interval, Subscription } from "rxjs";
 import { takeWhile } from "rxjs/operators";
 import { GameService } from "src/app/services/game/game.service";
 import { environment } from "src/environments/environment";
+import { CircleProjectile } from "./circle-projectile";
+import { Queue } from "../queue/queue";
 
 export class CirclePlayer extends Circle implements PlayerMethods {
     private currentPlayer: boolean = false;
-    private alive: boolean = false;
-    private id: number = 0;
-    
-    constructor(circleObj: CircleObject, canvasAPI: CanvasService) {
+    private alive: boolean = true;
+    private id: string = "";
+
+    private launchesProjectile = true;
+    private projectiles: Queue<CircleProjectile>;
+    private projectileSize: number = 10;
+    private projectileColor: string = "black";
+
+    constructor(circleObj: ShapeObject, canvasAPI: CanvasService, private gameAPI: GameService) {
         super(circleObj, canvasAPI);
-        this.radius = circleObj.radius;
+        this.radius = circleObj.radius || 0;
         this.setVector(this.p5.createVector(circleObj.pos_x, circleObj.pos_y));
+        this.zoomEffectDivider = this.radius;
+        this.id = circleObj.id;
+
+
+        this.projectiles = new Queue<CircleProjectile>();
     }
 
     getID() {
@@ -28,10 +40,21 @@ export class CirclePlayer extends Circle implements PlayerMethods {
         return this.alive;
     }
     setAsDead() {
+        console.log("PLAYER ATE", this.alive, this.id)
         this.alive = false;
+        console.log("PLAYER ATE", this.alive, this.id)
+
+        this.gameAPI.deletePlayer(this.id);
+    }
+    isCurrentPlayer(){
+        return this.currentPlayer;
     }
     setAsCurrentPlayer() {
         this.currentPlayer = true;
+    }
+
+    canLaunchProjectile() {
+        return this.launchesProjectile;
     }
 
     /**
@@ -44,7 +67,28 @@ export class CirclePlayer extends Circle implements PlayerMethods {
         }
 
         super.draw();
-        return;
+
+        //Draw its related projectiles
+        this.projectiles.forEach((projectile, i) => {
+            if (!projectile.draw()) {
+                this.projectiles.removeIndex(i);
+            }
+        });
+    }
+    updateData(data:ShapeObject){
+        this.radius = data.radius || 0;
+        this.color = data.color;
+        this.vector.x = data.pos_x;
+        this.vector.y = data.pos_y;
+    }
+    getData(): WebSocketPlayerMessage{
+        return {
+            id: this.id,
+            color:this.color,
+            pos_x: this.getPosX(),
+            pos_y: this.getPosY(),
+            radius: this.radius
+        }
     }
 
     /**
@@ -53,43 +97,42 @@ export class CirclePlayer extends Circle implements PlayerMethods {
      * @param velocity 
      * @returns void
      */
-    updatePosition(board: Board, velocity: p5.Vector) {
+    updatePosition() {
         if (!this.alive) {
             return;
         }
 
-        velocity.setMag(3);
-        let vector = this.getVector();
+        var velocity_x = this.p5.mouseX - (this.p5.width / 2);
+        var velocity_y = this.p5.mouseY - (this.p5.height / 2);
+        var velocity = this.p5.createVector(velocity_x, velocity_y);
+
+        velocity.setMag(config.playerMagnitude);
+
+        var vector = this.getVector();
         var newVector = vector.add(velocity);
 
-        if (!this.withinBoard(board, newVector)) {
-            vector.sub(velocity);
-            this.setVector(vector);
-            return;
+        //Update Player's position if within the board canvas
+        if (this.inCanvas(newVector)) {
+            this.setVector(newVector);
         }
+        else{
+            vector.sub(velocity);
+        }
+        
 
-        this.setVector(newVector);
-        return;
+        //Update Projectile's positions
+        this.projectiles.forEach((projectile) => {
+            projectile.updatePosition();
+        })
     }
 
-    /**
-     * Checks if a given vector is located within a given board
-     * @param board 
-     * @param vector 
-     * @returns boolean
-     */
-    withinBoard(board: Board, vector: p5.Vector) {
-        let inHorizontal = vector.x <= board.getWidth() && vector.x >= 0;
-        let inVertical = vector.y <= board.getHeight() && vector.y >= 0;
-        return inHorizontal && inVertical;
-    }
 
     /**
      * Determines if a player is 
      * @param enemyPlayer 
      * @returns boolean
      */
-    eatsPlayer(enemyPlayer: Player) {
+    eatsPlayer(enemyPlayer: ShapePlayer) {
         if (!this.alive || !enemyPlayer.isAlive()) {
             return false;
         }
@@ -128,13 +171,13 @@ export class CirclePlayer extends Circle implements PlayerMethods {
 
         return inEnemySpace;
     }
-    
+
     /**
      * Determines whether the current player overlaps another given player
      * @param enemyPlayer 
      * @returns 
      */
-    overlapsPlayer(enemyPlayer: Player){
+    overlapsPlayer(enemyPlayer: ShapePlayer) {
         if (!this.alive || !enemyPlayer.isAlive()) {
             return false;
         }
@@ -149,4 +192,24 @@ export class CirclePlayer extends Circle implements PlayerMethods {
 
         return false;
     }
+
+    launchProjectile() {
+        var circleObj: ShapeObject = {
+            id: "",
+            type: "circle",
+            radius: this.projectileSize,
+            color: this.projectileColor,
+            pos_x: this.getPosX(),
+            pos_y: this.getPosY(),
+        };
+
+        var projectile = new CircleProjectile(circleObj, this.canvasAPI);
+        projectile.getVector().setMag(config.projectileInitMag);
+
+        this.projectiles.push(projectile);
+    }
+
+
+
+
 }

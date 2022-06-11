@@ -223,8 +223,7 @@ def ws_update_player(ws):
         data = validate_json_ws(data, ws)
         try:
             player = Player.objects(pk=data['body']['id'])
-            player.update(**data['body'])
-            response = format_response("Player updated")
+            response = player.update(full_result = True, **data['body'])
             ws.send(response)
         except ValidationError:
             response = "Validation error thrown, please check the sent data for errors"

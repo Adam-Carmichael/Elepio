@@ -30,7 +30,6 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 #    return "<p>Welcome to the placeholder for the Elepio documentation</p>"
 
 
-
 #####################################
 ###
 ###  The Board's CRUD operations  ###
@@ -211,6 +210,21 @@ def ws_get_board_players(ws):
         try:
             players = Player.objects(board_id=data['body']['id'])
             response = players.to_json()
+            ws.send(response)
+        except ValidationError:
+            response = "Validation error thrown, please check the sent data for errors"
+            ws.close(1006, response)
+
+# Websocket protocol: update a player given their player ID
+@sock.route('/ws/player')
+def ws_update_player(ws):
+    while True:
+        data = ws.receive()
+        data = validate_json_ws(data, ws)
+        try:
+            player = Player.objects(pk=data['body']['id'])
+            player.update(**data['body'])
+            response = format_response("Player updated")
             ws.send(response)
         except ValidationError:
             response = "Validation error thrown, please check the sent data for errors"

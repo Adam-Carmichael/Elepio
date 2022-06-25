@@ -40,12 +40,17 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route('/api/boards', methods=['GET'])
 @cross_origin()
 def get_boards():
-    boards = Board.objects()
-    if not boards:
-        return "There are no boards", 404
+    try: 
+        boards = Board.objects()
+        if not boards:
+            response = format_response({"message": "There are no boards"})
+            return response, 404
 
-    response = format_response(boards)
-    return response, 200
+        response = format_response(boards)
+        return response, 200
+    except ValidationError:
+        response = format_response({"message": "Validation error thrown, please check your posted body for errors"})
+        return response, 400
 
 # Create/update a board
 @app.route('/api/boards', methods=['POST', 'PATCH'])
@@ -56,10 +61,10 @@ def create_board():
         board = Board(**data)
         board.save()
     except ValidationError:
-        response = format_response("Validation error thrown, please check your posted body for errors")
+        response = format_response({"message": "Validation error thrown, please check your posted body for errors"})
         return response, 400
     except FieldDoesNotExist:
-        response = format_response("Field does not exist error thrown, please check your posted body for errors")
+        response = format_response({"message": "Field does not exist error thrown, please check your posted body for errors"})
         return response, 400
     
     response = format_response(board)
@@ -70,34 +75,38 @@ def create_board():
 @cross_origin()
 def get_patch_delete_board(board_id: str):
     if request.method == 'GET':
-        board = Board.objects(pk=board_id)
-        if not board:
-            response = format_response("There is no board by that ID")
-            return response, 404
-        response = format_response(board)
-        return response, 200
+        try:
+            board = Board.objects(pk=board_id)
+            if not board:
+                response = format_response({"message": "There is no board by that ID"})
+                return response, 404
+            response = format_response(board)
+            return response, 200
+        except ValidationError:
+            response = format_response({"message": "Validation error thrown, please check your posted body for errors"})
+            return response, 400
 
     if request.method == 'PATCH':
         try: 
             data = request.get_json()
             board = Board.objects(pk=board_id)
             board.update(**data)
-            response = format_response("Board updated")
+            response = format_response({"message": "Board updated"})
             return response, 204
         except ValidationError:
-            response = format_response("Validation error thrown, please check your posted body for errors")
+            response = format_response({"message": "Validation error thrown, please check your posted body for errors"})
             return response, 400
         except FieldDoesNotExist:
-            response = format_response("Field does not exist error thrown, please check your posted body for errors")
+            response = format_response({"message": "Field does not exist error thrown, please check your posted body for errors"})
             return response, 400
 
     if request.method == 'DELETE':
         board = Board.objects(pk=board_id)
         if not board:
-            response = format_response("There is no board by that ID")
+            response = format_response({"message": "There is no board by that ID"})
             return response, 404
         board.delete()
-        response = format_response("Board successfully deleted")
+        response = format_response({"message": "Board successfully deleted"})
         return response, 200
 
 
@@ -114,7 +123,7 @@ def get_patch_delete_board(board_id: str):
 def get_players():
     players = Player.objects()
     if not players:
-        response = format_response("There are no players")
+        response = format_response({"message": "There are no players"})
         return response, 404
 
     response = format_response(players)
@@ -129,10 +138,10 @@ def create_player():
         player = Player(**data)
         player.save()
     except ValidationError:
-        response = format_response("Validation error thrown, please check your posted body for errors")
+        response = format_response({"message": "Validation error thrown, please check your posted body for errors"})
         return response, 400
     except FieldDoesNotExist:
-        response = format_response("Field does not exist error thrown, please check your posted body for errors")
+        response = format_response({"message": "Field does not exist error thrown, please check your posted body for errors"})
         return response, 400
     
     response = format_response(player)
@@ -143,34 +152,38 @@ def create_player():
 @cross_origin()
 def get_patch_delete_player(player_id: str):
     if request.method == 'GET':
-        player = Player.objects(pk=player_id)
-        if not player:
-            response = format_response("There is no player by that ID")
-            return response, 404
-        response = format_response(player)
-        return response, 200
+        try:
+            player = Player.objects(pk=player_id)
+            if not player:
+                response = format_response({"message": "There is no player by that ID"})
+                return response, 404
+            response = format_response(player)
+            return response, 200
+        except ValidationError:
+            response = format_response({"message": "Validation error thrown, please check your posted body for errors"})
+            return response, 400
 
     if request.method == 'PATCH':
         try: 
             data = request.get_json()
             player = Player.objects(pk=player_id)
             player.update(**data)
-            response = format_response("Player updated")
+            response = format_response({"message": "Player updated"})
             return response, 204
         except ValidationError:
-            response = format_response("Validation error thrown, please check your posted body for errors")
+            response = format_response({"message": "Validation error thrown, please check your posted body for errors"})
             return response, 400
         except FieldDoesNotExist:
-            response = format_response("Field does not exist error thrown, please check your posted body for errors")
+            response = format_response({"message": "Field does not exist error thrown, please check your posted body for errors"})
             return response, 400
 
     if request.method == 'DELETE':
         player = Player.objects(pk=player_id)
         if not player:
-            response = format_response("There is no player by that ID")
+            response = format_response({"message": "There is no player by that ID"})
             return response, 404
         player.delete()
-        response = format_response("Player successfully deleted")
+        response = format_response({"message": "Player successfully deleted"})
         return response, 200
 
 
@@ -187,7 +200,7 @@ def get_patch_delete_player(player_id: str):
 def get_board():
     boards = Board.objects(active=True).first()
     if not boards:
-        response = format_response("There are no boards")
+        response = format_response({"message": "There are no boards"})
         return response, 404
 
     response = format_response(boards)
@@ -212,7 +225,7 @@ def ws_get_board_players(ws):
             response = players.to_json()
             ws.send(response)
         except ValidationError:
-            response = "Validation error thrown, please check the sent data for errors"
+            response = format_response({"message": "Validation error thrown, please check the sent data for errors"})
             ws.close(1006, response)
 
 # Websocket protocol: update a player given their player ID
@@ -226,7 +239,7 @@ def ws_update_player(ws):
             response = player.update(**data['body'])
             ws.send(response)
         except ValidationError:
-            response = "Validation error thrown, please check the sent data for errors"
+            response = format_response({"message": "Validation error thrown, please check the sent data for errors"})
             ws.close(1006, response)
 
 # Websocket protocol: return response, used for testing
@@ -249,8 +262,10 @@ def echo(ws):
 def format_response(someObj):
     if (isinstance(someObj, str)):
         formattedObj = Response(someObj)
+        print(formattedObj)
     else:
         formattedObj = jsonify(someObj)
+        print(formattedObj)
     #formattedObj.headers.add('Access-Control-Allow-Origin', '*')
     return formattedObj
 

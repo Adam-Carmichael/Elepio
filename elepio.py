@@ -40,17 +40,13 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route('/api/boards', methods=['GET'])
 @cross_origin()
 def get_boards():
-    try: 
-        boards = Board.objects()
-        if not boards:
-            response = format_response({"message": "There are no boards"})
-            return response, 404
+    boards = Board.objects()
+    if not boards:
+        response = format_response({"message": "There are no boards"})
+        return response, 404
 
-        response = format_response(boards)
-        return response, 200
-    except ValidationError:
-        response = format_response({"message": "Validation error thrown, please check your posted body for errors"})
-        return response, 400
+    response = format_response(boards)
+    return response, 200
 
 # Create/update a board
 @app.route('/api/boards', methods=['POST', 'PATCH'])
@@ -83,7 +79,7 @@ def get_patch_delete_board(board_id: str):
             response = format_response(board)
             return response, 200
         except ValidationError:
-            response = format_response({"message": "Validation error thrown, please check your posted body for errors"})
+            response = format_response({"message": "Validation error thrown, please check that the given board ID is valid"})
             return response, 400
 
     if request.method == 'PATCH':
@@ -160,7 +156,7 @@ def get_patch_delete_player(player_id: str):
             response = format_response(player)
             return response, 200
         except ValidationError:
-            response = format_response({"message": "Validation error thrown, please check your posted body for errors"})
+            response = format_response({"message": "Validation error thrown, please check that the given player ID is valid"})
             return response, 400
 
     if request.method == 'PATCH':
@@ -198,9 +194,9 @@ def get_patch_delete_player(player_id: str):
 @app.route('/api/board', methods=['GET'])
 @cross_origin()
 def get_board():
-    boards = Board.objects(active=True).first()
+    boards = Board.objects(active=True, player_count__lte=99).first()
     if not boards:
-        response = format_response({"message": "There are no boards"})
+        response = format_response({"message": "There are no active boards that are available"})
         return response, 404
 
     response = format_response(boards)

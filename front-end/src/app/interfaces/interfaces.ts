@@ -9,7 +9,9 @@ export interface WS_Message {
 }
 
 
-export interface BoardPlayers { [key: string]: ShapePlayer }
+export interface BoardPlayers { 
+    [key: string]: ShapePlayer 
+}
 
 
 export enum YesNo {

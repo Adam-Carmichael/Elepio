@@ -32,7 +32,8 @@ export function initializeApp(appConfig:AppConfigService){
       deps: [AppConfigService],
       multi: true
     },*/
-    GameService],
+    GameService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

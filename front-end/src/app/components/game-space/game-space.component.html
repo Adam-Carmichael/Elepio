@@ -1,25 +1,34 @@
-<div class="container">
-    <div class="row">
-        <div class="col">
-            <h1>Welcome to Elepio!</h1>
-            <p>
-                Board ID: {{this.game.getBoard().getID()}}
-                <br>
-                Board Width: {{this.game.getBoard().getWidth()}}
-                <br>
-                Board Height: {{this.game.getBoard().getHeight()}}
+<main >
 
-            </p>
-            <p>Player Count: {{this.game.getBoard().getPlayerCount()}}</p>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1 class="text-center">Welcome to Elepio!</h1>
+                <p>
+                    Board ID: {{this.game.getBoard()?.getID()}}
+                    <br>
+                    Board Width: {{this.game.getBoard()?.getWidth()}}
+                    <br>
+                    Board Height: {{this.game.getBoard()?.getHeight()}}
+
+                </p>
+                <p>Player Count: {{this.game.getBoard()?.getPlayerCount()}}</p>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col">
-            <div id="game-space-container"></div>
+        <div class="row">
+            <div class="col">
+                <div id="game-space-container"></div>
+            </div>
         </div>
+        <button class="btn btn-primary" (click)="createNewPlayer()">Create New Player</button>
+        <button class="btn btn-secondary" (click)="logCurrentPlayer()">Log Current Player</button>
+        <button class="btn btn-secondary" (click)="logAllPlayers()">Log All Players</button>
+        <button class="btn btn-danger" (click)="killAllPlayers()">Kill All Players</button>
+
+
+        <div id="canvas-area"></div>
+
+        <div id="p5_loading" class="loadingclass">this could be some sweet graphics loading lots of bits.</div>
     </div>
-    <button (click)="createNewPlayer()">Create New Player</button>
-    <button (click)="logCurrentPlayer()">Log Current Player</button>
-    <button (click)="logAllPlayers()">Log All Players</button>
-    <button (click)="killAllPlayers()">Kill All Players</button>
-</div>
+
+</main>

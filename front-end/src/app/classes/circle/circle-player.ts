@@ -40,13 +40,20 @@ export class CirclePlayer extends Circle implements PlayerMethods {
         return this.alive;
     }
     setAsDead() {
-        console.log("PLAYER ATE", this.alive, this.id)
+        console.log("PLAYER ATE, Alive:", this.alive, this.id)
         this.alive = false;
-        console.log("PLAYER ATE", this.alive, this.id)
+        console.log("PLAYER ATE, Alive:", this.alive, this.id)
 
-        this.gameAPI.deletePlayer(this.id);
+        this.gameAPI.deletePlayer(this.id).subscribe(
+            (success) => {
+                console.log("Success deletion",success);
+            },
+            (error) =>{
+                console.log("Failed Deletion", error)
+            }
+        );
     }
-    isCurrentPlayer(){
+    isCurrentPlayer() {
         return this.currentPlayer;
     }
     setAsCurrentPlayer() {
@@ -75,16 +82,16 @@ export class CirclePlayer extends Circle implements PlayerMethods {
             }
         });
     }
-    updateData(data:ShapeObject){
+    updateData(data: ShapeObject) {
         this.radius = data.radius || 0;
         this.color = data.color;
         this.vector.x = data.pos_x;
         this.vector.y = data.pos_y;
     }
-    getData(): WebSocketPlayerMessage{
+    getData(): WebSocketPlayerMessage {
         return {
             id: this.id,
-            color:this.color,
+            color: this.color,
             pos_x: this.getPosX(),
             pos_y: this.getPosY(),
             radius: this.radius
@@ -115,10 +122,10 @@ export class CirclePlayer extends Circle implements PlayerMethods {
         if (this.inCanvas(newVector)) {
             this.setVector(newVector);
         }
-        else{
+        else {
             vector.sub(velocity);
         }
-        
+
 
         //Update Projectile's positions
         this.projectiles.forEach((projectile) => {

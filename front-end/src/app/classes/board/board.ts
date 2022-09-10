@@ -4,7 +4,7 @@ import { CanvasService } from "src/app/services/canvas/canvas.service";
 import p5 from "p5";
 
 import { interval, of, pipe, Subscription } from "rxjs";
-import { takeWhile } from "rxjs/operators";
+import { map, takeWhile } from "rxjs/operators";
 
 import { CirclePlayer } from "../circle/circle-player";
 
@@ -28,70 +28,63 @@ export class Board {
     private players: BoardPlayers = {}
     private playerUpdateInterval: any;
 
-    constructor(private gameAPI: GameService, private canvasAPI: CanvasService) {
+    constructor(private gameAPI: GameService, private canvasAPI: CanvasService, boardInfo?: BoardResponse| null) {
         this.p5 = this.canvasAPI.getP5();
 
-        this.p5.setup = this.boardSetup();
+        boardInfo = boardInfo ? boardInfo : this.getDefaultBoard();
 
-        //Get First Active Board Information
-        this.gameAPI.getFirstActiveBoard().subscribe(
-            (success) => {
-                var boardResponse: BoardResponse = success.body || this.getDefaultBoard();
-                console.log("Board Response:", boardResponse);
+        this.color = boardInfo.bg_color;
+        this.width = boardInfo.width;
+        this.height = boardInfo.height;
+        this.id = boardInfo._id.$oid;
 
-                this.color = boardResponse.bg_color;
-                this.width = boardResponse.width;
-                this.height = boardResponse.height;
-                this.id = boardResponse._id.$oid;
+        this.createCurrentPlayer();
 
-                console.log("Creating current player");
-                this.createCurrentPlayer();
+        //Update PLayer Information
+        this.playerUpdateInterval = interval(environment.apiInterval)
+            .subscribe(() => {
+                this.getUpdatedPlayers();
+                this.updateCurrentPlayer();
+            });
 
-                //Update PLayer Information
-                this.playerUpdateInterval = interval(environment.apiInterval)
-                    .subscribe(() => {
-                        this.getUpdatedPlayers();
-                        this.updateCurrentPlayer();
-                    });
+        this.updateP5methods();
 
-                this.updateP5methods();
-            },
-            (error) => {
-                this.gameAPI.handleError(error);
-            }
-        );
     }
 
-    private createCurrentPlayer(playerInfo?: CreatePlayerPayload) {
-        playerInfo = playerInfo || this.getDefaultPlayer();
 
+    private createCurrentPlayer(playerInfo?: CreatePlayerPayload) {
+        playerInfo = playerInfo || this.getDefaultPlayerPayload();
 
         this.gameAPI.createPlayer(playerInfo).subscribe(
-            (success) => {
-                var playerCreated: WebSocketPlayersResponse | null = success.body;
+            (response) => {
+                let playerCreated: WebSocketPlayersResponse | null = response.body;
                 if (playerCreated) {
-                    this.setPlayerObjects([playerCreated], true);
+                    this.setPlayerObjects([playerCreated]);
+                    this.currentPlayer = this.players[playerCreated._id.$oid];
+                    this.players[playerCreated._id.$oid].setAsCurrentPlayer();
                 }
                 else {
                     this.currentPlayer = null;
                 }
             },
-            (error) => {
-                console.error(error);
+            (response) => {
+                this.gameAPI.handleError(response);
                 this.currentPlayer = null;
-            });
+            }
+        );
     }
 
-    private updateCurrentPlayer(){
-        if(this.currentPlayer && this.currentPlayer.isAlive()){
+    private updateCurrentPlayer() {
+        if (this.currentPlayer && this.currentPlayer.isAlive()) {
             this.gameAPI.updatePlayerOnBoardWS(this.currentPlayer.getID(), this.currentPlayer.getData()).subscribe(
-                (success:any) =>{
-                    console.log("Update Player WS Success", success);
+                (success: any) => {
+                    //console.log("Update Player WS Success", success);
+
                     //var playerUpdated: WebSocketPlayerUpdateResponse | null = success.body;
                     //this.setPlayerObjects(success.body);
                 },
-                (error:any) => {
-                    console.log("Update Player WS Error", error);
+                (error: any) => {
+                    //console.log("Update Player WS Error", error);
                 }
             )
         }
@@ -109,6 +102,7 @@ export class Board {
         );
     }
 
+    
     public getID() {
         return this.id;
     }
@@ -151,7 +145,7 @@ export class Board {
         return allPlayers;
     }
 
-    private getDefaultPlayer(): CreatePlayerPayload {
+    private getDefaultPlayerPayload(): CreatePlayerPayload {
         var player = {
             "color": "#f00",
             //"color": this.p5.random(["#a2d3aa", "#dda", "#ada", "#34d", "#aaa", "#09d", "#f00"]),
@@ -184,7 +178,7 @@ export class Board {
         return board;
     }
 
-    private setPlayerObjects(playersJSON: Array<WebSocketPlayersResponse> | null, currentPlayer?: boolean) {
+    private setPlayerObjects(playersJSON: Array<WebSocketPlayersResponse> | null) {
         if (!playersJSON || playersJSON.length < 1) {
             return;
         }
@@ -202,7 +196,7 @@ export class Board {
 
             //Update PLayer 
             if (this.players.hasOwnProperty(playerData.id)) {
-                if(this.players[playerData.id] == this.currentPlayer){
+                if (this.players[playerData.id] == this.currentPlayer) {
                     return;
                 }
                 this.players[playerData.id].updateData(playerData);
@@ -210,12 +204,6 @@ export class Board {
             //Create Player
             else {
                 this.players[playerData.id] = new CirclePlayer(playerData, this.canvasAPI, this.gameAPI);
-            }
-
-            //Mark as Current Player
-            if (playersJSON.length == 1 && currentPlayer) {
-                this.players[playerData.id].setAsCurrentPlayer();
-                this.currentPlayer = this.players[playerData.id];
             }
         });
     }
@@ -249,6 +237,11 @@ export class Board {
             let width = this.p5.windowWidth;
             let height = this.p5.windowHeight;
 
+
+            console.log("P5 WIDTH: %s", width);
+            console.log("P5 HEIGHT: %s", height);
+
+
             this.p5.createCanvas(width, height);
             this.p5.fill(this.p5.color(this.lineColor));
 
@@ -262,13 +255,15 @@ export class Board {
     }
 
     public drawGrid() {
+        //this.p5.translate((this.p5.width / 4), (this.p5.height / 4));
+
         this.p5.fill(this.p5.color(config.boardLineColor));
 
         let canvasWidth = this.width;
         let canvasHeight = this.height;
 
-        let interval_x = canvasWidth / 10;
-        let interval_y = canvasHeight / 10;
+        let interval_x = 100 || canvasWidth / 10;
+        let interval_y = 100 || canvasHeight / 10;
 
         for (let i = 0; i < (canvasWidth); i += interval_x) {
             this.p5.line(i, 0, i, canvasHeight);
@@ -276,6 +271,10 @@ export class Board {
         for (let i = 0; i < (canvasHeight); i += interval_y) {
             this.p5.line(0, i, canvasWidth, i);
         }
+
+
+        this.p5.fill(this.p5.color("#000"));
+        this.p5.line(this.width, 0, this.width, this.height);
     }
     public drawHungerBar() {
         this.p5.rect(20, 20, 500, 75);
@@ -316,7 +315,6 @@ export class Board {
                 this.drawHungerBar();
 
                 //Draw grid
-                this.drawGrid();
 
                 //Update Player Position
                 this.currentPlayer?.updatePosition();
@@ -325,11 +323,13 @@ export class Board {
                 this.translateBoard(this.currentPlayer);
 
                 //Draw Player
+                this.drawGrid();
+
                 this.currentPlayer?.draw();
 
                 //Update enemy player "alive" status and draw if alive
-                for(let player_id in this.players){
-                    if(this.players.hasOwnProperty(player_id) && !this.players[player_id].isCurrentPlayer()){
+                for (let player_id in this.players) {
+                    if (this.players.hasOwnProperty(player_id) && !this.players[player_id].isCurrentPlayer()) {
                         let enemyPlayer = this.players[player_id]
                         if (this.currentPlayer?.eatsPlayer(enemyPlayer)) {
                             enemyPlayer.setAsDead();

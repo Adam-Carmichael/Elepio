@@ -9,8 +9,8 @@ import { AppConfigService } from '../app-config/app-config.service';
 import * as Config from "src/assets/config.json";
 import { LEADING_TRIVIA_CHARS } from '@angular/compiler/src/render3/view/template';
 
-import { Observable, Observer, Subject, throwError, EMPTY } from 'rxjs';
-import { catchError, tap, switchAll, retry, map } from "rxjs/operators"
+import { Observable, Observer, Subject, throwError, EMPTY, of } from 'rxjs';
+import { catchError, tap, switchAll, retry, map, take, switchMap } from "rxjs/operators"
 import { webSocket, WebSocketSubject, } from "rxjs/webSocket";
 import { AnonymousSubject } from 'rxjs/internal/Subject';
 import { WebSocketService } from '../web-socket/web-socket.service';
@@ -42,13 +42,18 @@ export class GameService {
   //==============================================================//
   //                        BOARDS API
   //==============================================================//
-  getBoard(id: string): Observable<HttpResponse<BoardResponse>> {
-    return this.http.get<BoardResponse>(`${api}/boards/${id}`, { observe: "response" });
+  getBoard(id: string): Observable<HttpResponse<Array<BoardResponse>>> {
+    return this.http.get<Array<BoardResponse>>(`${api}/boards/${id}`, { observe: "response" });
   };
 
   getBoards(): Observable<HttpResponse<Array<BoardResponse>>> {
     return this.http.get<Array<BoardResponse>>(`${api}/boards`, { observe: "response" });
   };
+
+  createBoard(): Observable<HttpResponse<BoardResponse>> {
+    return this.http.post<BoardResponse>(`${api}/boards`, {}, { observe: "response" });
+  };
+
 
 
   //==============================================================//
@@ -75,15 +80,98 @@ export class GameService {
   //==============================================================//
   //                        Unique Methods
   //==============================================================//
-  getFirstActiveBoard(): Observable<HttpResponse<BoardResponse>> {
+  getFirstBoard(): Observable<HttpResponse<BoardResponse>> {
     return this.http.get<BoardResponse>(`${api}/board`, { observe: "response" });
-  };
+  }
+
+  getFirstActiveBoard(): Observable<HttpResponse<BoardResponse>> {
+    // this.http.get<BoardResponse>(`${api}/board`, { observe: "response" });
+
+    const response = this.http.get<BoardResponse>(`${api}/board`, { observe: "response" })
+
+    return response;
+  }
+
+
+  getBoardInfo(): Observable<HttpResponse<BoardResponse>> {
+    // this.http.get<BoardResponse>(`${api}/board`, { observe: "response" });
+
+
+    const observable = this.http.get<BoardResponse>(`${api}/board`, { observe: "response" });
+   
+
+
+    return observable;
+
+
+
+
+
+
+
+
+    // doSomething().pipe(
+    //   tap(doSomethingResponse => this.performSomeOperation(doSomethingResponse)),
+    //   switchMap(_ => this.doAnotherthing())
+    // ).subscribe(doAnotherthingResponse => console.log(doAnotherthingResponse));
+
+    //     .pipe(concatMap(value => {
+    //   console.log(`${value}: first pipe operator (before promise)`);
+    //   // return a promise that resolves with the specified value after 2 seconds
+    //   return new Promise(resolve => setTimeout(() => resolve(value), 2000));
+    // }))
+    //   .pipe(concatMap(value => {
+    //     console.log(`${value}: second pipe operator (after promise resolved)`);
+    //     return of(value);
+    //   }))
+    //   .subscribe(value => this.values.push(value));
+
+
+
+
+
+
+
+
+    // var one = someObservable.pipe(take(1));
+    // var two = someOtherObservable.pipe(take(1));
+    // concat(one, two).subscribe(function () {/*do something */ });
+
+
+    // var boardResponse = this.http.get<BoardResponse>(`${api}/board`, { observe: "response" }).pipe(take(1));
+
+    // if (boardResponse.)
+
+
+
+
+
+    //   const response: Observable<HttpResponse<BoardResponse>> = this.http.get<BoardResponse>(`${api}/board`, { observe: "response" }).pipe(
+    //     map(result => {
+    //       console.log("getfirstactiveboard 1", result);
+    //       var x: HttpResponse<BoardResponse> = result;
+
+    //       if (!result.ok) {
+    //         let y = this.createBoard();
+    //         y.subscribe((success) => {
+    //           console.log("creating new board");
+    //           result = success;
+    //           return result;
+    //         });
+    //       } else {
+    //         return result;
+    //       }
+    //     }));
+
+    // return response;
+  }
+
   getPlayersOnBoard(board_id: string): Observable<HttpResponse<Array<PlayerResponse>>> {
     if (!board_id) {
       return throwError("Invalid Board ID");
     }
     return this.http.get<Array<PlayerResponse>>(`${api}/board/${board_id}/players`, { observe: "response" });
-  }
+  };
 
   //61ec86adf66fc44889b0a66e
   //echoWebSocket
@@ -108,7 +196,7 @@ export class GameService {
     return this.messages?.asObservable();
   }
 
-  updatePlayerOnBoardWS(player_id:string, data: WebSocketPlayerMessage){
+  updatePlayerOnBoardWS(player_id: string, data: WebSocketPlayerMessage) {
     //Connect to Web Socket if not already connected
     this.messages2 = <AnonymousSubject<any>>this.wsPlayers.connect(playerWebSocket);
 

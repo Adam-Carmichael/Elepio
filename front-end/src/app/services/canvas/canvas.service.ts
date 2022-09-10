@@ -8,11 +8,18 @@ export class CanvasService {
   private p5:p5;
 
   constructor() {
+
     this.p5 = new p5((p: any) => {
-      p.preload = () => { }
+      p.preload = () => { 
+        //setup waits until everthing here is done and then creates the canvas
+
+      }
       p.setup = () => { }
       p.draw = () => { }
     });
+  }
+  public setP5(newP5:p5){
+    this.p5 = newP5;
   }
   
   public getP5() {

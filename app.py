@@ -37,11 +37,14 @@ def get_boards():
         return boards, 404
 
     return boards, 200
-"""
+
 # Create/update a board
 @app.route('/api/boards', methods=['POST', 'PATCH'])
-@cross_origin()
 def create_board():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('INSERT INTO board VALUES ()')
+
     try:
         data = request.get_json()
         board = Board(**data)
@@ -55,4 +58,3 @@ def create_board():
     
     response = format_response(board)
     return response, 200
-"""

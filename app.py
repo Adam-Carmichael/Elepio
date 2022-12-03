@@ -41,20 +41,33 @@ def get_boards():
 # Create/update a board
 @app.route('/api/boards', methods=['POST', 'PATCH'])
 def create_board():
+    """ Example Payload
+    {
+    "active": "true",
+    "bg_color": "#FFFFFF",
+    "height": 1100,
+    "player_count": 80,
+    "player_max": 100,
+    "width":1000
+    }
+    """
+    #data = request.get_json()
+    #sqlQuery = "INSERT INTO board VALUES (" +  + ")"
+    sqlQuery = """ INSERT INTO board VALUES (530, 'true', '#FFFFFF', 1000, 0, 100, 1000)"""
+
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute('INSERT INTO board VALUES ()')
+    #cursor.execute("INSERT INTO a_table (c1, c2, c3) VALUES(%s, %s, %s)", (v1, v2, v3))
+    cur.execute(sqlQuery)
+    conn.commit()
 
-    try:
-        data = request.get_json()
-        board = Board(**data)
-        board.save()
-    except ValidationError:
-        response = format_response({"message": "Validation error thrown, please check your posted body for errors"})
-        return response, 400
-    except FieldDoesNotExist:
-        response = format_response({"message": "Field does not exist error thrown, please check your posted body for errors"})
-        return response, 400
+    cur.execute('SELECT * FROM board;')
+    boards = cur.fetchall()
+    print("Result: ", boards)
+    cur.close()
+    conn.close()
+
+    return boards, 200
     
-    response = format_response(board)
-    return response, 200
+
+    
